@@ -1,0 +1,56 @@
+graph LR
+    %% Data Flow Diagram
+    
+    subgraph "Client Layer"
+        UI[UI Components]
+        Hooks[Custom Hooks]
+        Store[Zustand Store]
+    end
+    
+    subgraph "Service Layer"
+        DBService[DatabaseService]
+        SyncService[DatabaseSync]
+        AuthService[Authentication]
+    end
+    
+    subgraph "Data Layer"
+        SQLite[(Op-SQLite)]
+        AsyncStorage[(AsyncStorage)]
+        Supabase[(Supabase)]
+    end
+    
+    subgraph "External"
+        API[External APIs]
+        GeoSDK[DAMS Geo SDK]
+    end
+    
+    %% Data flow connections
+    UI --> Hooks
+    Hooks --> Store
+    Store --> DBService
+    
+    DBService --> SQLite
+    DBService --> SyncService
+    SyncService --> Supabase
+    
+    Store --> AsyncStorage
+    
+    AuthService --> Supabase
+    UI --> AuthService
+    
+    GeoSDK --> Store
+    API --> Store
+    
+    %% Sync flow
+    SQLite -.->|sync| SyncService
+    Supabase -.->|realtime| SyncService
+    
+    classDef ui fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
+    classDef service fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#fff
+    classDef data fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    classDef external fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    
+    class UI,Hooks,Store ui
+    class DBService,SyncService,AuthService service
+    class SQLite,AsyncStorage,Supabase data
+    class API,GeoSDK external

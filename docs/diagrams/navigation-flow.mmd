@@ -1,0 +1,58 @@
+graph TD
+    %% Navigation Flow Diagram
+    
+    Start([App Launch])
+    
+    subgraph "Authentication Flow"
+        AuthCheck{Authenticated?}
+        Login[Login Screen]
+        Register[Register Screen]
+    end
+    
+    subgraph "Main App"
+        TabNav[Tab Navigator]
+        
+        subgraph "Tabs"
+            Home[Home Tab]
+            Search[Search Tab]
+            Profile[Profile Tab]
+            Settings[Settings Tab]
+        end
+        
+        subgraph "Modals"
+            CreateModal[Create Modal]
+            DetailModal[Detail Modal]
+            EditModal[Edit Modal]
+        end
+    end
+    
+    %% Flow connections
+    Start --> AuthCheck
+    AuthCheck -->|No| Login
+    AuthCheck -->|Yes| TabNav
+    
+    Login --> Register
+    Register --> Login
+    Login -->|Success| TabNav
+    
+    TabNav --> Home
+    TabNav --> Search
+    TabNav --> Profile
+    TabNav --> Settings
+    
+    Home --> CreateModal
+    Home --> DetailModal
+    Search --> DetailModal
+    DetailModal --> EditModal
+    
+    Settings -->|Logout| Login
+    
+    classDef start fill:#4CAF50,stroke:#2E7D32,stroke-width:3px,color:#fff
+    classDef auth fill:#FF5722,stroke:#D32F2F,stroke-width:2px,color:#fff
+    classDef tab fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    classDef modal fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    
+    class Start start
+    class AuthCheck,Login,Register auth
+    class TabNav,Home,Search,Profile,Settings tab
+    class CreateModal,DetailModal,EditModal modal

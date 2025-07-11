@@ -1,0 +1,61 @@
+graph LR
+    %% Module Dependencies Diagram
+    
+    App[Dask1 App]
+    
+    subgraph "React Native Core"
+        expovectoricons["@expo/vector-icons"]
+        reactnativeasyncstorageasyncstorage["@react-native-async-storage/async-storage"]
+        reactnavigationnative["@react-navigation/native"]
+        expo["expo"]
+        expofont["expo-font"]
+        expohaptics["expo-haptics"]
+        expolineargradient["expo-linear-gradient"]
+        expolinking["expo-linking"]
+        exporouter["expo-router"]
+        exposplashscreen["expo-splash-screen"]
+        expostatusbar["expo-status-bar"]
+        exposystemui["expo-system-ui"]
+        expowebbrowser["expo-web-browser"]
+        react["react"]
+        reactdom["react-dom"]
+        reactnative["react-native"]
+        reactnativegesturehandler["react-native-gesture-handler"]
+        reactnativereanimated["react-native-reanimated"]
+        reactnativesafeareacontext["react-native-safe-area-context"]
+        reactnativescreens["react-native-screens"]
+    end
+
+    subgraph "Navigation"
+        reactnavigationnative["@react-navigation/native"]
+        exporouter["expo-router"]
+    end
+
+    subgraph "State Management"
+        zustand["zustand"]
+    end
+
+    subgraph "Animation"
+        moti["moti"]
+        reactnativereanimated["react-native-reanimated"]
+    end
+
+    subgraph "Database"
+        opengineeringopsqlite["@op-engineering/op-sqlite"]
+        supabasesupabasejs["@supabase/supabase-js"]
+    end
+
+    subgraph "UI/Styling"
+        reactnativesafeareacontext["react-native-safe-area-context"]
+        twrnc["twrnc"]
+    end
+
+    subgraph "Development"
+    end
+
+    App --> ReactNativeCore
+    App --> Navigation
+    App --> StateManagement
+    App --> Animation
+    App --> Database
+    App --> UIStyling

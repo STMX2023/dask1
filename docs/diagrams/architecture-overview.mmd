@@ -1,0 +1,82 @@
+graph TB
+    %% Architecture Overview Diagram
+    
+    subgraph "Mobile App"
+        subgraph "Presentation Layer"
+            ExpoRouter[Expo Router]
+            ReactComponents[React Components]
+            Animations[Moti/Reanimated]
+            Styling[Twrnc Styling]
+        end
+        
+        subgraph "State Management"
+            Zustand[Zustand Store]
+            AsyncPersist[Async Persistence]
+        end
+        
+        subgraph "Data Layer"
+            OpSQLite[Op-SQLite]
+            DatabaseService[Database Service]
+            SyncEngine[Sync Engine]
+        end
+        
+        subgraph "Native Modules"
+            GeoSDK[Geo SDK]
+            DeviceSensors[Device Sensors]
+            Permissions[Permissions]
+        end
+    end
+    
+    subgraph "Cloud Services"
+        Supabase[Supabase]
+        RealtimeSync[Realtime Sync]
+        Authentication[Auth Service]
+        CloudStorage[Cloud Storage]
+    end
+    
+    subgraph "Development"
+        TypeScript[TypeScript]
+        ESLint[ESLint/Prettier]
+        GitHooks[Git Hooks]
+        Testing[Testing Suite]
+    end
+    
+    %% Connections
+    ReactComponents --> ExpoRouter
+    ReactComponents --> Animations
+    ReactComponents --> Styling
+    ReactComponents --> Zustand
+    
+    Zustand --> AsyncPersist
+    Zustand --> DatabaseService
+    
+    DatabaseService --> OpSQLite
+    DatabaseService --> SyncEngine
+    SyncEngine --> Supabase
+    
+    Supabase --> RealtimeSync
+    Supabase --> Authentication
+    Supabase --> CloudStorage
+    
+    GeoSDK --> Zustand
+    DeviceSensors --> ReactComponents
+    Permissions --> GeoSDK
+    
+    TypeScript -.->|validates| ReactComponents
+    ESLint -.->|checks| ReactComponents
+    GitHooks -.->|enforces| ESLint
+    Testing -.->|tests| ReactComponents
+    
+    classDef presentation fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
+    classDef state fill:#FF9800,stroke:#F57C00,stroke-width:2px,color:#fff
+    classDef data fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    classDef native fill:#9C27B0,stroke:#6A1B9A,stroke-width:2px,color:#fff
+    classDef cloud fill:#00BCD4,stroke:#0097A7,stroke-width:2px,color:#fff
+    classDef dev fill:#795548,stroke:#5D4037,stroke-width:2px,color:#fff
+    
+    class ExpoRouter,ReactComponents,Animations,Styling presentation
+    class Zustand,AsyncPersist state
+    class OpSQLite,DatabaseService,SyncEngine data
+    class GeoSDK,DeviceSensors,Permissions native
+    class Supabase,RealtimeSync,Authentication,CloudStorage cloud
+    class TypeScript,ESLint,GitHooks,Testing dev

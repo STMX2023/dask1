@@ -1,0 +1,17 @@
+graph TD
+    %% Component Hierarchy Diagram
+    
+    subgraph "App Screens"
+        index[index]
+        two[two]
+        modal[modal]
+    end
+    
+    subgraph "Shared Components"
+    end
+    
+    classDef screen fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
+    classDef component fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
+    
+    class index,two,modal screen
+    class DelayedRender,Icon,LoadingFallback component
