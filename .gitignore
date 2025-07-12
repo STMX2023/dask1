@@ -44,3 +44,13 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 .yarn/cache/
+android/
+ios/
+.yarn/cache/
+.expo/
+dist/
+web-build/
+node_modules/
+*.apk
+*.aab
+*.ipa
