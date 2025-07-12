@@ -1,13 +1,21 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
-node_modules/
+# Build directories
+android/
+ios/
 
-# Expo
+# Build outputs
+*.apk
+*.aab
+*.ipa
+
+# Build artifacts
 .expo/
 dist/
 web-build/
 expo-env.d.ts
+# dependencies
+node_modules/
 
 # Native
 .kotlin/
