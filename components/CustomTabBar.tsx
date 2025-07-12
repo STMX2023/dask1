@@ -14,10 +14,11 @@ import tw from '../utils/tw';
 // Pre-compute ALL styles at module level
 const styles = {
   container: tw`absolute bottom-0 left-0 right-0`,
-  tabBar: tw`bg-black rounded-full mx-6 mb-6`,
-  tabsContainer: tw`flex-row px-8 py-4`,
+  tabBarWrapper: tw`mx-6 mb-6`,
+  tabBar: tw`bg-black overflow-hidden`, // Remove rounded-full, we'll animate this
+  tabsContainer: tw`flex-row px-8`,
   tabItem: tw`flex-1 items-center justify-center`,
-  indicator: tw`bg-white rounded-full h-0.5 absolute bottom-2`,
+  indicator: tw`bg-white rounded-full h-0.5 absolute`,
   iconGroup: tw`flex-row items-center gap-2.5`,
   arrowButton: tw`absolute right-4 items-center justify-center w-8 h-8`,
 };
@@ -27,17 +28,21 @@ const ACTIVE_COLOR = '#FFFFFF';
 const INACTIVE_COLOR = '#777777';
 const INDICATOR_WIDTH = 25;
 const ICON_SIZES = {
-  add: 30,
+  add: 26,
   group: 20,
   default: 24,
 };
 const ANIMATION_CONFIG = {
-  duration: 150,
-  easing: Easing.out(Easing.quad),
+  duration: 250,
+  easing: Easing.out(Easing.cubic),
 };
+const COLLAPSED_HEIGHT = 72;
+const EXPANDED_HEIGHT = 180;
+const ICON_AREA_HEIGHT = 72; // Height of the bottom icon area that never changes
 
-// Create animated component once
+// Create animated components once
 const AnimatedIndicator = Animated.View;
+const AnimatedTabBar = Animated.View;
 
 // Tab icon component - optimized with no inline styles
 const TabIcon = memo<{
@@ -56,11 +61,13 @@ const TabIcon = memo<{
         style={styles.tabItem}
         android_disableSound={true}
       >
-        <Ionicons 
-          name="add" 
-          size={ICON_SIZES.add} 
-          color={color}
-        />
+        <View style={{ aspectRatio: 1 }}>
+          <Ionicons 
+            name="add" 
+            size={ICON_SIZES.add} 
+            color={color}
+          />
+        </View>
       </Pressable>
     );
   }
@@ -112,11 +119,14 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
   const translateX = useSharedValue(0);
   const tabPositions = useSharedValue<number[]>([]);
   const indicatorWidth = useSharedValue(INDICATOR_WIDTH);
+  const tabBarHeight = useSharedValue(COLLAPSED_HEIGHT);
+  const expandedContentHeight = useSharedValue(0);
+  const borderRadius = useSharedValue(36); // Start as pill-shaped (36px radius)
   
   const activeIndex = state.index;
   
   // Arrow state
-  const [isArrowUp, setIsArrowUp] = React.useState(true);
+  const [isExpanded, setIsExpanded] = React.useState(false);
   
   // Layout handler for indicator
   const handleIndicatorLayout = useCallback((event: any) => {
@@ -124,12 +134,6 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     runOnUI(() => {
       'worklet';
       indicatorWidth.value = width;
-      // Recalculate all tab positions with new indicator width
-      tabPositions.value.forEach((_, index) => {
-        if (tabPositions.value[index] !== undefined) {
-          // This will be updated when tabs re-layout
-        }
-      });
     })();
   }, []);
   
@@ -153,6 +157,20 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     width: indicatorWidth.value,
   }));
   
+  // Animated tab bar style for expansion with custom border radius
+  const animatedTabBarStyle = useAnimatedStyle(() => ({
+    height: tabBarHeight.value,
+    borderTopLeftRadius: borderRadius.value,
+    borderTopRightRadius: borderRadius.value,
+    borderBottomLeftRadius: 36, // Keep bottom rounded (half of collapsed height)
+    borderBottomRightRadius: 36, // Keep bottom rounded (half of collapsed height)
+  }));
+  
+  // Animated expanded content style
+  const animatedExpandedContentStyle = useAnimatedStyle(() => ({
+    height: expandedContentHeight.value,
+  }));
+  
   // Update position when tab changes
   React.useEffect(() => {
     runOnUI(() => {
@@ -162,6 +180,18 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
       }
     })();
   }, [activeIndex]);
+  
+  // Toggle expansion function
+  const toggleExpansion = useCallback(() => {
+    setIsExpanded(!isExpanded);
+    const targetHeight = !isExpanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT;
+    const targetExpandedHeight = !isExpanded ? EXPANDED_HEIGHT - ICON_AREA_HEIGHT : 0;
+    const targetBorderRadius = !isExpanded ? 24 : 36; // 24px radius when expanded, 36px when collapsed (keeps pill shape)
+    
+    tabBarHeight.value = withTiming(targetHeight, ANIMATION_CONFIG);
+    expandedContentHeight.value = withTiming(targetExpandedHeight, ANIMATION_CONFIG);
+    borderRadius.value = withTiming(targetBorderRadius, ANIMATION_CONFIG);
+  }, [isExpanded]);
   
   // Memoize tab press handlers
   const tabHandlers = useMemo(() => {
@@ -180,41 +210,84 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
   
   return (
     <View style={styles.container}>
-      <View style={styles.tabBar}>
-        <View style={styles.tabsContainer}>
-          {state.routes.map((route, index) => {
-            const isFocused = state.index === index;
+      <View style={styles.tabBarWrapper}>
+        <AnimatedTabBar style={[styles.tabBar, animatedTabBarStyle]}>
+          {/* Expanded content area - at the top */}
+          <Animated.View style={[animatedExpandedContentStyle, { 
+            paddingHorizontal: 32,
+            paddingTop: 16,
+            justifyContent: 'center',
+          }]}>
+            {/* Add your expanded content here */}
+            {isExpanded && (
+              <View>
+                {/* Additional controls, settings, etc. */}
+              </View>
+            )}
+          </Animated.View>
+          
+          {/* Fixed bottom area with icons - always 72px high */}
+          <View style={{ 
+            height: ICON_AREA_HEIGHT,
+            position: 'relative',
+          }}>
+            {/* Icons container - absolutely positioned to stay centered */}
+            <View style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: ICON_AREA_HEIGHT,
+              justifyContent: 'center', // Center content vertically
+            }}>
+              <View style={[styles.tabsContainer, { 
+                paddingTop: 0,
+                paddingBottom: 0,
+                height: 48, // Fixed height for icon container
+                alignItems: 'center',
+              }]}>
+                {state.routes.map((route, index) => {
+                  const isFocused = state.index === index;
+                  
+                  return (
+                    <TabIcon
+                      key={route.key}
+                      routeName={route.name}
+                      isFocused={isFocused}
+                      onPress={tabHandlers[index]}
+                      onLayout={handleTabLayout(index)}
+                    />
+                  );
+                })}
+              </View>
+            </View>
             
-            return (
-              <TabIcon
-                key={route.key}
-                routeName={route.name}
-                isFocused={isFocused}
-                onPress={tabHandlers[index]}
-                onLayout={handleTabLayout(index)}
+            {/* Indicator - positioned at bottom of icon area */}
+            <AnimatedIndicator 
+              style={[styles.indicator, animatedIndicatorStyle, {
+                bottom: 8,
+              }]} 
+              onLayout={handleIndicatorLayout}
+              pointerEvents="none"
+            />
+            
+            {/* Arrow Button - absolutely positioned */}
+            <Pressable
+              style={[styles.arrowButton, { 
+                position: 'absolute',
+                top: (ICON_AREA_HEIGHT - 32) / 2, // Center in the 72px area
+                right: 32,
+              }]}
+              onPress={toggleExpansion}
+            >
+              <Ionicons 
+                name={isExpanded ? "chevron-down" : "chevron-up"} 
+                size={20} 
+                color={ACTIVE_COLOR}
               />
-            );
-          })}
-        </View>
-        
-        {/* Indicator */}
-        <AnimatedIndicator 
-          style={[styles.indicator, animatedIndicatorStyle]} 
-          onLayout={handleIndicatorLayout}
-          pointerEvents="none"
-        />
-        
-        {/* Arrow Button */}
-        <Pressable
-          style={[styles.arrowButton, { top: '50%', marginTop: -16 }]}
-          onPress={() => setIsArrowUp(!isArrowUp)}
-        >
-          <Ionicons 
-            name={isArrowUp ? "chevron-up" : "chevron-down"} 
-            size={20} 
-            color={ACTIVE_COLOR}
-          />
-        </Pressable>
+            </Pressable>
+          </View>
+        </AnimatedTabBar>
       </View>
     </View>
   );
