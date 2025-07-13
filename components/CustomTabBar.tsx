@@ -7,7 +7,7 @@ import Animated, {
   Easing,
   runOnUI,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import tw from '../utils/tw';
 import { useIsDarkMode } from '../store/useAppStore';
@@ -57,7 +57,7 @@ const TabIcon = memo<{
         style={baseStyles.tabItem}
         android_disableSound={true}
       >
-        <Ionicons 
+        <Entypo 
           name="home" 
           size={ICON_SIZES.default} 
           color={color}
@@ -74,8 +74,8 @@ const TabIcon = memo<{
         style={baseStyles.tabItem}
         android_disableSound={true}
       >
-        <Ionicons 
-          name="settings" 
+        <Entypo 
+          name="cog" 
           size={ICON_SIZES.default} 
           color={color}
         />
@@ -90,8 +90,8 @@ const TabIcon = memo<{
       style={baseStyles.tabItem}
       android_disableSound={true}
     >
-      <Ionicons 
-        name="ellipse-outline" 
+      <Entypo 
+        name="circle" 
         size={ICON_SIZES.default} 
         color={color}
       />
@@ -286,7 +286,7 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
             }]}
             onPress={toggleExpansion}
           >
-            <Ionicons 
+            <Entypo 
               name={isExpanded ? "chevron-down" : "chevron-up"} 
               size={20} 
               color={activeColor}
