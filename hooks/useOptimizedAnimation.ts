@@ -30,7 +30,7 @@ export const useOptimizedAnimation = (
   // Monitor performance and adapt
   useAnimatedReaction(
     () => value.value,
-    (current, previous) => {
+    (current, _previous) => {
       'worklet';
       // Skip updates if frame rate limiter says no
       if (!frameRateLimiter.shouldRender()) {

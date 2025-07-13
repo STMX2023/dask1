@@ -1,5 +1,6 @@
 import React, { memo, useMemo, useCallback } from 'react';
 import { View, Pressable, LayoutChangeEvent } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -35,9 +36,9 @@ const NAV_CONFIG = {
     showArrow: false,
     icons: ['house', 'gear'] // Custom icons for home page
   },
-  'two': { 
+  'settings': { 
     lockExpanded: false, 
-    showArrow: false,
+    showArrow: false, // No arrow on settings page
     icons: ['house', 'gear'] // Standard icons for settings
   },
 } as const;
@@ -51,7 +52,6 @@ const DEFAULT_CONFIG = {
 // Base styles (theme-independent)
 const baseStyles = {
   container: tw`absolute bottom-0 left-0 right-0`,
-  tabBarWrapper: tw`mx-6 mb-6`,
   tabsContainer: tw`flex-row px-8`,
   tabItem: tw`flex-1 items-center justify-center`,
   iconGroup: tw`flex-row items-center justify-center`,
@@ -98,6 +98,7 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
   navigation 
 }) => {
   const isDark = useIsDarkMode();
+  const insets = useSafeAreaInsets();
   const activeIndex = state.index;
   const currentRoute = state.routes[activeIndex]?.name;
   
@@ -226,9 +227,14 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     });
   }, [state.routes, state.index, navigation]);
   
+  const tabBarWrapperStyle = useMemo(() => ({
+    marginHorizontal: 24,
+    marginBottom: insets.bottom,
+  }), [insets.bottom]);
+
   return (
     <View style={baseStyles.container}>
-      <View style={baseStyles.tabBarWrapper}>
+      <View style={tabBarWrapperStyle}>
         <Animated.View style={[styles.tabBar, animatedTabBarStyle]}>
           {/* Tab icons container */}
           <View style={{ 

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import tw from '../utils/tw';
 import { currentSettings, PERFORMANCE_LEVEL } from '../utils/animationOptimizer';
 

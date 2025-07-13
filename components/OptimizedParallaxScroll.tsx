@@ -16,8 +16,8 @@ interface OptimizedParallaxScrollProps extends ScrollViewProps {
 
 export const OptimizedParallaxScroll = memo(({
   children,
-  headerHeight = 200,
-  parallaxStrength = 0.5,
+  headerHeight: _headerHeight = 200,
+  parallaxStrength: _parallaxStrength = 0.5,
   ...props
 }: OptimizedParallaxScrollProps) => {
   const scrollY = useSharedValue(0);

@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 
 export const useStoreIntegration = () => {
   const colorScheme = useColorScheme();
-  const { isDarkMode, setCurrentUser, setTeamMembers } = useAppStore();
+  const { setCurrentUser, setTeamMembers } = useAppStore();
 
   // Sync system dark mode with store only on initial mount
   useEffect(() => {

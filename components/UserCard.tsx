@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, Image, Pressable } from 'react-native';
-import { MotiView, MotiText } from 'moti';
+import { MotiView } from 'moti';
 import tw from '../utils/tw';
 
 interface UserCardProps {

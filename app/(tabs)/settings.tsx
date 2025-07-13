@@ -133,7 +133,7 @@ export default function TabTwoScreen() {
     title: tw.style('text-[22px] font-semibold', { color: theme.textPrimary, letterSpacing: -0.5 }),
     scrollContainer: tw.style('flex-1 mx-4 mt-2 rounded-3xl overflow-hidden', { 
       backgroundColor: theme.background,
-      marginBottom: insets.bottom + 80 
+      marginBottom: 72 + insets.bottom + 16
     }),
     scrollContent: tw`py-4`,
     themeSection: tw`mb-8 px-4`,

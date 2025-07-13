@@ -10,10 +10,9 @@ import Animated, {
   interpolate,
   Easing,
   cancelAnimation,
-  runOnJS,
 } from 'react-native-reanimated';
 import tw from '../utils/tw';
-import { currentSettings, FrameRateLimiter } from '../utils/animationOptimizer';
+import { currentSettings } from '../utils/animationOptimizer';
 
 interface Particle {
   id: string;
@@ -32,7 +31,7 @@ interface OptimizedFloatingParticlesProps {
 }
 
 // Individual particle component - heavily optimized
-const Particle = memo(({ particle }: { particle: Particle }) => {
+const ParticleComponent = memo(({ particle }: { particle: Particle }) => {
   const progress = useSharedValue(0);
   const opacity = useSharedValue(0);
 
@@ -116,7 +115,7 @@ const Particle = memo(({ particle }: { particle: Particle }) => {
   );
 });
 
-Particle.displayName = 'Particle';
+ParticleComponent.displayName = 'Particle';
 
 export const OptimizedFloatingParticles = memo(({ 
   count = currentSettings.particleCount, 
@@ -147,7 +146,7 @@ export const OptimizedFloatingParticles = memo(({
   return (
     <View style={tw`absolute inset-0`} pointerEvents="none">
       {particles.map((particle) => (
-        <Particle key={particle.id} particle={particle} />
+        <ParticleComponent key={particle.id} particle={particle} />
       ))}
     </View>
   );

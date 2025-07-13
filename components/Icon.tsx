@@ -40,6 +40,6 @@ export const TabIcon = ({ name, color }: { name: string; color: string }) => (
   <Icon family="FontAwesome" name={name} size={28} color={color} style={{ marginBottom: -3 }} />
 );
 
-export const HeaderIcon = ({ name, color, onPress }: { name: string; color: string; onPress?: () => void }) => (
+export const HeaderIcon = ({ name, color }: { name: string; color: string }) => (
   <Icon family="FontAwesome" name={name} size={25} color={color} />
 );

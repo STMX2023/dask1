@@ -107,11 +107,11 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
   }), [theme, isDark]);
   
   // Direct animation function
-  const animateToIndex = useCallback((index: number, width: number) => {
-    'worklet';
-    const position = index * (width / tabCount);
-    translateX.value = withTiming(position, TIMING_CONFIG);
-  }, [tabCount]);
+  // const _animateToIndex = useCallback((index: number, width: number) => {
+  //   'worklet';
+  //   const position = index * (width / tabCount);
+  //   translateX.value = withTiming(position, TIMING_CONFIG);
+  // }, [tabCount]);
   
   // Pre-create all handlers
   const handlers = useMemo(() => 
