@@ -129,7 +129,7 @@ export default function TabTwoScreen() {
     container: tw.style('flex-1', { backgroundColor: theme.background }),
     header: tw`pt-20 pb-5 items-center`,
     title: tw.style('text-[22px] font-semibold', { color: theme.textPrimary, letterSpacing: -0.5 }),
-    content: tw`flex-1 px-4`,
+    content: tw`flex-1 px-4 mb-28`,
     scrollContent: tw`pt-4`,
     themeSection: tw`mb-8`,
     sectionTitle: tw.style('text-[15px] font-semibold mb-3 ml-1', { color: theme.textSecondary }),
@@ -252,7 +252,7 @@ export default function TabTwoScreen() {
             />
           </SettingsGroup>
 
-          <SettingsGroup marginBottom={100}>
+          <SettingsGroup marginBottom={24}>
             <SettingsItem
               icon="apps"
               iconColor="#5856D6"

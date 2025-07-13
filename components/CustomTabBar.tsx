@@ -7,13 +7,13 @@ import Animated, {
   Easing,
   runOnUI,
 } from 'react-native-reanimated';
-import { Entypo } from '@expo/vector-icons';
+import { FontAwesome6 } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import tw from '../utils/tw';
 import { useIsDarkMode } from '../store/useAppStore';
+import { getTheme } from '../constants/Colors';
 
 // Constants
-const INDICATOR_WIDTH = 25;
 const ICON_SIZES = {
   add: 26,
   group: 18, // Reduced for better alignment
@@ -27,6 +27,26 @@ const ANIMATION_CONFIG = {
 
 const COLLAPSED_HEIGHT = 72;
 const EXPANDED_HEIGHT = 180;
+
+// Nav bar configuration per route
+const NAV_CONFIG = {
+  'index': { 
+    lockExpanded: true,
+    showArrow: false,
+    icons: ['house', 'gear'] // Custom icons for home page
+  },
+  'two': { 
+    lockExpanded: false, 
+    showArrow: false,
+    icons: ['house', 'gear'] // Standard icons for settings
+  },
+} as const;
+
+const DEFAULT_CONFIG = {
+  lockExpanded: false,
+  showArrow: true,
+  icons: ['house', 'gear']
+} as const;
 
 // Base styles (theme-independent)
 const baseStyles = {
@@ -46,42 +66,9 @@ const TabIcon = memo<{
   onLayout?: (event: LayoutChangeEvent) => void;
   activeColor: string;
   inactiveColor: string;
-}>(({ routeName, isFocused, onPress, onLayout, activeColor, inactiveColor }) => {
+  iconName: string;
+}>(({ isFocused, onPress, onLayout, activeColor, inactiveColor, iconName }) => {
   const color = isFocused ? activeColor : inactiveColor;
-  
-  if (routeName === 'index') {
-    return (
-      <Pressable
-        onPressIn={onPress}
-        onLayout={onLayout}
-        style={baseStyles.tabItem}
-        android_disableSound={true}
-      >
-        <Entypo 
-          name="home" 
-          size={ICON_SIZES.default} 
-          color={color}
-        />
-      </Pressable>
-    );
-  }
-  
-  if (routeName === 'two') {
-    return (
-      <Pressable
-        onPressIn={onPress}
-        onLayout={onLayout}
-        style={baseStyles.tabItem}
-        android_disableSound={true}
-      >
-        <Entypo 
-          name="cog" 
-          size={ICON_SIZES.default} 
-          color={color}
-        />
-      </Pressable>
-    );
-  }
   
   return (
     <Pressable
@@ -90,8 +77,8 @@ const TabIcon = memo<{
       style={baseStyles.tabItem}
       android_disableSound={true}
     >
-      <Entypo 
-        name="circle" 
+      <FontAwesome6 
+        name={iconName as keyof typeof FontAwesome6.glyphMap} 
         size={ICON_SIZES.default} 
         color={color}
       />
@@ -99,9 +86,9 @@ const TabIcon = memo<{
   );
 }, (prev, next) => 
   prev.isFocused === next.isFocused && 
-  prev.routeName === next.routeName &&
   prev.activeColor === next.activeColor &&
-  prev.inactiveColor === next.inactiveColor
+  prev.inactiveColor === next.inactiveColor &&
+  prev.iconName === next.iconName
 );
 
 TabIcon.displayName = 'TabIcon';
@@ -111,47 +98,41 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
   navigation 
 }) => {
   const isDark = useIsDarkMode();
+  const activeIndex = state.index;
+  const currentRoute = state.routes[activeIndex]?.name;
+  
+  // Get configuration for current route
+  const config = NAV_CONFIG[currentRoute as keyof typeof NAV_CONFIG] || DEFAULT_CONFIG;
   
   // Theme-aware styles and colors
   const { styles, activeColor, inactiveColor } = useMemo(() => {
-    const iconColor = isDark ? '#FFFFFF' : '#1C1C1E';
+    const theme = getTheme(isDark);
+    const activeIconColor = isDark ? theme.textPrimary : theme.textPrimary;
+    const inactiveIconColor = isDark ? theme.tabIconDefault : theme.tabIconDefault;
+    
     return {
       styles: {
         tabBar: tw.style('overflow-hidden', { 
           backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7'
         }),
         indicator: tw.style('rounded-full h-0.5 absolute', { 
-          backgroundColor: iconColor
+          backgroundColor: activeIconColor
         }),
       },
-      activeColor: iconColor,
-      inactiveColor: iconColor,
+      activeColor: activeIconColor,
+      inactiveColor: inactiveIconColor,
     };
   }, [isDark]);
   
   // Shared animated values - initialize with stable references
   const translateX = useSharedValue(0);
   const tabPositions = useSharedValue<number[]>([0, 0]); // Pre-allocate for 2 tabs
-  const indicatorWidth = useSharedValue(INDICATOR_WIDTH);
-  const tabBarHeight = useSharedValue(COLLAPSED_HEIGHT);
+  const tabBarHeight = useSharedValue(config.lockExpanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT);
   const borderRadius = useSharedValue(36);
   
-  const activeIndex = state.index;
+  // Arrow expansion state - only relevant for non-locked routes
+  const [isExpanded, setIsExpanded] = React.useState(config.lockExpanded);
   
-  // Arrow expansion state
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  
-  // Layout handler for indicator
-  const handleIndicatorLayout = useCallback((event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    // Defer to avoid render-time access
-    setTimeout(() => {
-      runOnUI(() => {
-        'worklet';
-        indicatorWidth.value = width;
-      })();
-    }, 0);
-  }, [indicatorWidth]);
   
   // Layout handler for individual tabs
   const handleTabLayout = useCallback((index: number) => (event: LayoutChangeEvent) => {
@@ -160,19 +141,14 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     
     runOnUI(() => {
       'worklet';
-      const centerX = x + width / 2 - indicatorWidth.value / 2;
+      const centerX = x + width / 2;
       tabPositions.value[index] = centerX;
       if (isActive) {
         translateX.value = centerX;
       }
     })();
-  }, [activeIndex, indicatorWidth, tabPositions, translateX]);
+  }, [activeIndex, tabPositions, translateX]);
   
-  // Animated indicator style
-  const animatedIndicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    width: indicatorWidth.value,
-  }));
   
   // Animated tab bar style
   const animatedTabBarStyle = useAnimatedStyle(() => ({
@@ -200,8 +176,10 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     return () => clearTimeout(timer);
   }, [activeIndex, tabPositions, translateX]);
   
-  // Toggle expansion
+  // Toggle expansion - only works if not locked
   const toggleExpansion = useCallback(() => {
+    if (config.lockExpanded) return;
+    
     setIsExpanded(prev => {
       const next = !prev;
       const targetHeight = next ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT;
@@ -213,7 +191,25 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
       
       return next;
     });
-  }, [tabBarHeight]);
+  }, [tabBarHeight, config.lockExpanded]);
+  
+  // Update height when route changes
+  React.useEffect(() => {
+    const targetHeight = config.lockExpanded ? EXPANDED_HEIGHT : 
+                        (isExpanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT);
+    
+    runOnUI(() => {
+      'worklet';
+      tabBarHeight.value = withTiming(targetHeight, ANIMATION_CONFIG);
+    })();
+    
+    // Update expansion state for locked routes
+    if (config.lockExpanded && !isExpanded) {
+      setIsExpanded(true);
+    } else if (!config.lockExpanded && config.lockExpanded !== undefined && isExpanded && currentRoute !== 'index') {
+      setIsExpanded(false);
+    }
+  }, [config.lockExpanded, currentRoute, isExpanded, tabBarHeight]);
   
   // Memoize tab press handlers
   const tabHandlers = useMemo(() => {
@@ -251,6 +247,7 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
             }]}>
               {state.routes.map((route, index) => {
                 const isFocused = state.index === index;
+                const iconName = config.icons[index] || 'circle';
                 
                 return (
                   <TabIcon
@@ -261,37 +258,32 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
                     onLayout={handleTabLayout(index)}
                     activeColor={activeColor}
                     inactiveColor={inactiveColor}
+                    iconName={iconName}
                   />
                 );
               })}
             </View>
           </View>
 
-          {/* Active tab indicator */}
-          <Animated.View 
-            style={[styles.indicator, animatedIndicatorStyle, {
-              position: 'absolute',
-              bottom: 8,
-            }]} 
-            onLayout={handleIndicatorLayout}
-            pointerEvents="none"
-          />
+          {/* Active tab indicator - Removed as color system handles active state */}
           
-          {/* Expansion arrow button */}
-          <Pressable
-            style={[baseStyles.arrowButton, { 
-              position: 'absolute',
-              bottom: (COLLAPSED_HEIGHT - 32) / 2,
-              right: 32,
-            }]}
-            onPress={toggleExpansion}
-          >
-            <Entypo 
-              name={isExpanded ? "chevron-down" : "chevron-up"} 
-              size={20} 
-              color={activeColor}
-            />
-          </Pressable>
+          {/* Expansion arrow button - only show if config allows */}
+          {config.showArrow && (
+            <Pressable
+              style={[baseStyles.arrowButton, { 
+                position: 'absolute',
+                bottom: (COLLAPSED_HEIGHT - 32) / 2,
+                right: 32,
+              }]}
+              onPress={toggleExpansion}
+            >
+              <FontAwesome6 
+                name={isExpanded ? "chevron-down" : "chevron-up"} 
+                size={20} 
+                color={inactiveColor}
+              />
+            </Pressable>
+          )}
         </Animated.View>
       </View>
     </View>
