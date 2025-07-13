@@ -1,5 +1,6 @@
 import React, { useState, useMemo, memo } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
 import { Ionicons } from '@expo/vector-icons';
 import { SwippableTabBarExtreme } from '../../components/SwippableTabBarExtreme';
@@ -57,7 +58,7 @@ const SettingsItem = memo<{
       onPress={onPress}
     >
       <View style={styles.iconContainer}>
-        <Ionicons name={icon as any} size={18} color="white" />
+        <Ionicons name={icon as keyof typeof Ionicons.glyphMap} size={18} color="white" />
       </View>
       <Text style={styles.title}>{title}</Text>
       {showChevron && (
@@ -93,6 +94,7 @@ export default function TabTwoScreen() {
   const isDark = useIsDarkMode();
   const theme = getTheme(isDark);
   const { toggleDarkMode } = useAppStore();
+  const insets = useSafeAreaInsets();
   
   // Theme selector state - sync with actual theme
   const [selectedTheme, setSelectedTheme] = useState<string>(isDark ? 'dark' : 'light');
@@ -127,13 +129,16 @@ export default function TabTwoScreen() {
 
   const styles = useMemo(() => ({
     container: tw.style('flex-1', { backgroundColor: theme.background }),
-    header: tw`pt-20 pb-5 items-center`,
+    header: tw`pt-16 pb-3 items-center`,
     title: tw.style('text-[22px] font-semibold', { color: theme.textPrimary, letterSpacing: -0.5 }),
-    content: tw`flex-1 px-4 mb-28`,
-    scrollContent: tw`pt-4`,
-    themeSection: tw`mb-8`,
+    scrollContainer: tw.style('flex-1 mx-4 mt-2 rounded-3xl overflow-hidden', { 
+      backgroundColor: theme.background,
+      marginBottom: insets.bottom + 80 
+    }),
+    scrollContent: tw`py-4`,
+    themeSection: tw`mb-8 px-4`,
     sectionTitle: tw.style('text-[15px] font-semibold mb-3 ml-1', { color: theme.textSecondary }),
-  }), [theme]);
+  }), [theme, insets.bottom]);
 
   return (
     <View style={styles.container}>
@@ -145,13 +150,13 @@ export default function TabTwoScreen() {
         <Text style={styles.title}>Settings</Text>
       </View>
 
-      <ScrollView 
-        style={styles.content} 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        overScrollMode="never"
-      >
+      <View style={styles.scrollContainer}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          overScrollMode="never"
+        >
         {/* Theme Selector */}
         <View style={styles.themeSection}>
           <Text style={styles.sectionTitle}>APPEARANCE</Text>
@@ -173,13 +178,14 @@ export default function TabTwoScreen() {
           from={{ opacity: 0, translateY: 20 }}
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ delay: 200 }}
+          style={tw`px-0`}
         >
           <SettingsGroup>
             <SettingsItem
               icon="image"
               iconColor="#007AFF"
               title="Wallpaper"
-              onPress={() => console.log('Wallpaper pressed')}
+              onPress={() => console.warn('Wallpaper pressed')}
             />
           </SettingsGroup>
 
@@ -188,25 +194,25 @@ export default function TabTwoScreen() {
               icon="notifications"
               iconColor="#FF3B30"
               title="Notifications"
-              onPress={() => console.log('Notifications pressed')}
+              onPress={() => console.warn('Notifications pressed')}
             />
             <SettingsItem
               icon="volume-high"
               iconColor="#FF2D92"
               title="Sounds & Haptics"
-              onPress={() => console.log('Sounds pressed')}
+              onPress={() => console.warn('Sounds pressed')}
             />
             <SettingsItem
               icon="moon"
               iconColor="#5856D6"
               title="Focus"
-              onPress={() => console.log('Focus pressed')}
+              onPress={() => console.warn('Focus pressed')}
             />
             <SettingsItem
               icon="hourglass"
               iconColor="#5856D6"
               title="Screen Time"
-              onPress={() => console.log('Screen Time pressed')}
+              onPress={() => console.warn('Screen Time pressed')}
             />
           </SettingsGroup>
 
@@ -215,19 +221,19 @@ export default function TabTwoScreen() {
               icon="finger-print"
               iconColor="#34C759"
               title="Face ID & Passcode"
-              onPress={() => console.log('Face ID pressed')}
+              onPress={() => console.warn('Face ID pressed')}
             />
             <SettingsItem
               icon="medical"
               iconColor="#FF3B30"
               title="Emergency SOS"
-              onPress={() => console.log('Emergency SOS pressed')}
+              onPress={() => console.warn('Emergency SOS pressed')}
             />
             <SettingsItem
               icon="hand-left"
               iconColor="#007AFF"
               title="Privacy & Security"
-              onPress={() => console.log('Privacy pressed')}
+              onPress={() => console.warn('Privacy pressed')}
             />
           </SettingsGroup>
 
@@ -236,19 +242,19 @@ export default function TabTwoScreen() {
               icon="game-controller"
               iconColor="#32D74B"
               title="Game Center"
-              onPress={() => console.log('Game Center pressed')}
+              onPress={() => console.warn('Game Center pressed')}
             />
             <SettingsItem
               icon="cloud"
               iconColor="#007AFF"
               title="iCloud"
-              onPress={() => console.log('iCloud pressed')}
+              onPress={() => console.warn('iCloud pressed')}
             />
             <SettingsItem
               icon="card"
               iconColor="#FF9500"
               title="Wallet & Apple Pay"
-              onPress={() => console.log('Wallet pressed')}
+              onPress={() => console.warn('Wallet pressed')}
             />
           </SettingsGroup>
 
@@ -257,17 +263,18 @@ export default function TabTwoScreen() {
               icon="apps"
               iconColor="#5856D6"
               title="Apps"
-              onPress={() => console.log('Apps pressed')}
+              onPress={() => console.warn('Apps pressed')}
             />
             <SettingsItem
               icon="code-slash"
               iconColor="#8E8E93"
               title="Developer"
-              onPress={() => console.log('Developer pressed')}
+              onPress={() => console.warn('Developer pressed')}
             />
           </SettingsGroup>
         </MotiView>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 }
