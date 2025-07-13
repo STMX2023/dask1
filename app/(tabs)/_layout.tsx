@@ -37,6 +37,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="schedule"
+        options={{
+          title: 'Schedule',
+          tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
+          headerShown: false, // Hide header on schedule screen since it has its own header
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',

@@ -72,11 +72,11 @@ const lightTheme = {
   blueLight: baseColors.blueLight,
   
   // Status colors with proper contrast
-  success: '#059669',      // green-600
+  success: '#15803D',      // green-700 - darker green for better contrast against light gray nav bar
   successLight: '#34D399', // green-400
   warning: baseColors.orange,
   warningLight: baseColors.orangeLight,
-  error: baseColors.red,
+  error: '#DC2626',        // red-600 - brighter red for better contrast
   errorLight: baseColors.redLight,
   info: baseColors.blue,
   infoLight: baseColors.blueLight,
@@ -126,11 +126,11 @@ const darkTheme = {
   blueLight: baseColors.blue,
   
   // Status colors with proper dark mode contrast
-  success: '#10B981',      // green-500
+  success: '#4ADE80',      // green-400 - much brighter green for dark mode
   successLight: '#059669', // green-600
   warning: baseColors.orangeLight,
   warningLight: baseColors.orange,
-  error: baseColors.redLight,
+  error: '#F87171',        // red-400 - much brighter red for dark mode
   errorLight: baseColors.red,
   info: baseColors.blueLight,
   infoLight: baseColors.blue,

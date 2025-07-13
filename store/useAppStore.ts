@@ -19,6 +19,14 @@ interface Activity {
   completed: boolean;
 }
 
+interface TimerSession {
+  id: string;
+  startTime: string;
+  endTime: string;
+  duration: number; // in seconds
+  date: string; // YYYY-MM-DD format
+}
+
 interface AppState {
   // User state
   currentUser: User | null;
@@ -26,6 +34,13 @@ interface AppState {
   
   // Activities state
   activities: Activity[];
+  
+  // Timer state
+  timerSessions: TimerSession[];
+  currentTimer: {
+    isRunning: boolean;
+    startTime: string | null;
+  };
   
   // UI state
   isDarkMode: boolean;
@@ -37,6 +52,12 @@ interface AppState {
   addActivity: (activity: Activity) => void;
   updateActivity: (id: string, updates: Partial<Activity>) => void;
   deleteActivity: (id: string) => void;
+  
+  // Timer actions
+  startTimer: () => void;
+  stopTimer: () => void;
+  saveTimerSession: (session: TimerSession) => void;
+  
   toggleDarkMode: () => void;
   toggleAnimations: () => void;
   
@@ -54,6 +75,11 @@ export const useAppStore = create<AppState>()(
         currentUser: null,
         teamMembers: [],
         activities: [],
+        timerSessions: [],
+        currentTimer: {
+          isRunning: false,
+          startTime: null,
+        },
         isDarkMode: false,
         animationsEnabled: true,
         
@@ -77,6 +103,51 @@ export const useAppStore = create<AppState>()(
         deleteActivity: (id) =>
           set((state) => ({
             activities: state.activities.filter((activity) => activity.id !== id),
+          })),
+        
+        // Timer actions
+        startTimer: () =>
+          set((state) => ({
+            currentTimer: {
+              ...state.currentTimer,
+              isRunning: true,
+              startTime: new Date().toISOString(),
+            },
+          })),
+        
+        stopTimer: () => {
+          const state = get();
+          const { currentTimer } = state;
+          
+          if (currentTimer.isRunning && currentTimer.startTime) {
+            const endTime = new Date().toISOString();
+            const startTime = new Date(currentTimer.startTime).getTime();
+            const endTimeMs = new Date(endTime).getTime();
+            const duration = Math.floor((endTimeMs - startTime) / 1000);
+            const date = new Date().toISOString().split('T')[0];
+            
+            const session: TimerSession = {
+              id: `timer_${Date.now()}`,
+              startTime: currentTimer.startTime,
+              endTime,
+              duration,
+              date,
+            };
+            
+            // Save session and reset timer
+            set((state) => ({
+              timerSessions: [...state.timerSessions, session],
+              currentTimer: {
+                isRunning: false,
+                startTime: null,
+              },
+            }));
+          }
+        },
+        
+        saveTimerSession: (session) =>
+          set((state) => ({
+            timerSessions: [...state.timerSessions, session],
           })),
         
         toggleDarkMode: () =>
@@ -120,3 +191,9 @@ export const useTeamMembers = () => useAppStore((state) => state.teamMembers);
 export const useActivities = () => useAppStore((state) => state.activities);
 export const useIsDarkMode = () => useAppStore((state) => state.isDarkMode);
 export const useAnimationsEnabled = () => useAppStore((state) => state.animationsEnabled);
+
+// Timer selectors
+export const useTimerSessions = () => useAppStore((state) => state.timerSessions);
+export const useCurrentTimer = () => useAppStore((state) => state.currentTimer);
+export const useStartTimer = () => useAppStore((state) => state.startTimer);
+export const useStopTimer = () => useAppStore((state) => state.stopTimer);
