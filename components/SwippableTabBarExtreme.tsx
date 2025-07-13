@@ -7,7 +7,8 @@ import Animated, {
   Easing,
   runOnUI,
 } from 'react-native-reanimated';
-import tw from '../utils/tw';
+import { getTheme } from '../constants/Colors';
+import { useIsDarkMode } from '../store/useAppStore';
 
 interface Tab {
   id: string;
@@ -20,37 +21,44 @@ interface SwippableTabBarExtremeProps {
   onTabChange: (tabId: string) => void;
 }
 
-// ALL styles pre-computed - zero runtime overhead
-const containerStyle = tw`bg-gray-100 dark:bg-gray-800 rounded-3xl p-1.5`;
-const tabContainerStyle = tw`flex-row`;
-const indicatorStyle = tw`absolute top-1.5 left-1.5 bg-white dark:bg-gray-700 rounded-2xl`;
-const tabItemStyle = tw`items-center justify-center`;
-const activeTextStyle = tw`text-sm font-semibold text-black dark:text-white`;
-const inactiveTextStyle = tw`text-sm font-normal text-gray-500 dark:text-gray-400`;
-
-// Constants
-const TAB_HEIGHT = 40;
-const TIMING_CONFIG = {
-  duration: 100,
-  easing: Easing.out(Easing.quad),
-};
-
-// Static tab - no animations, no props functions
+// Styled tab item component
 const TabItem = memo<{
   label: string;
   isActive: boolean;
   onPress: () => void;
-}>(({ label, isActive, onPress }) => (
-  <Pressable
-    onPressIn={onPress} // Instant response
-    style={[tabItemStyle, { flex: 1, height: TAB_HEIGHT }]}
-    android_disableSound={true}
-  >
-    <Text style={isActive ? activeTextStyle : inactiveTextStyle}>
-      {label}
-    </Text>
-  </Pressable>
-));
+  theme: any;
+}>(({ label, isActive, onPress, theme }) => {
+  const styles = useMemo(() => ({
+    container: {
+      flex: 1,
+      height: TAB_HEIGHT,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    },
+    text: {
+      fontSize: 14,
+      fontWeight: isActive ? '600' as const : '400' as const,
+      color: isActive ? theme.textPrimary : theme.textTertiary,
+    }
+  }), [isActive, theme]);
+
+  return (
+    <Pressable
+      onPressIn={onPress}
+      style={styles.container}
+      android_disableSound={true}
+    >
+      <Text style={styles.text}>{label}</Text>
+    </Pressable>
+  );
+});
+
+// Constants
+const TAB_HEIGHT = 40;
+const TIMING_CONFIG = {
+  duration: 200,
+  easing: Easing.out(Easing.cubic),
+};
 
 TabItem.displayName = 'TabItem';
 
@@ -62,12 +70,41 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
   activeTab,
   onTabChange,
 }) => {
+  // Get theme
+  const isDark = useIsDarkMode();
+  const theme = getTheme(isDark);
+  
   // Minimal shared values
   const translateX = useSharedValue(0);
   const indicatorWidth = useSharedValue(100);
   
   const tabCount = tabs.length;
   const activeIndex = tabs.findIndex(tab => tab.id === activeTab);
+
+  // Dynamic styles based on theme
+  const styles = useMemo(() => ({
+    container: {
+      backgroundColor: theme.surfaceSecondary,
+      borderRadius: 24,
+      padding: 6,
+    },
+    tabContainer: {
+      flexDirection: 'row' as const,
+    },
+    indicator: {
+      position: 'absolute' as const,
+      top: 6,
+      left: 6,
+      backgroundColor: theme.surface,
+      borderRadius: 18,
+      // Shadow for depth
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: isDark ? 0.3 : 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    }
+  }), [theme, isDark]);
   
   // Direct animation function
   const animateToIndex = useCallback((index: number, width: number) => {
@@ -84,20 +121,27 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
       runOnUI(() => {
         'worklet';
         const width = indicatorWidth.value;
-        const position = index * (width / tabCount);
-        translateX.value = withTiming(position, TIMING_CONFIG);
+        if (width > 0) {
+          const tabWidth = width / tabCount;
+          const position = index * tabWidth;
+          translateX.value = withTiming(position, TIMING_CONFIG);
+        }
       })();
     }), 
-    [tabs, onTabChange, tabCount, indicatorWidth]
+    [tabs, onTabChange, tabCount]
   );
 
   // Single layout handler
   const handleLayout = useCallback((e: LayoutChangeEvent) => {
-    const width = e.nativeEvent.layout.width - 12;
+    const containerWidth = e.nativeEvent.layout.width;
+    const width = containerWidth - 12; // Account for padding
     indicatorWidth.value = width;
     
     // Set initial position without animation
-    translateX.value = activeIndex * (width / tabCount);
+    if (activeIndex >= 0) {
+      const position = activeIndex * (width / tabCount);
+      translateX.value = position;
+    }
   }, [activeIndex, tabCount]);
 
   // Single animated style
@@ -109,22 +153,29 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
 
   // Update on external change
   React.useEffect(() => {
-    const width = indicatorWidth.value;
-    if (width > 0) {
-      runOnUI(animateToIndex)(activeIndex, width);
+    if (activeIndex >= 0) {
+      const width = indicatorWidth.value;
+      if (width > 0) {
+        runOnUI(() => {
+          'worklet';
+          const position = activeIndex * (width / tabCount);
+          translateX.value = withTiming(position, TIMING_CONFIG);
+        })();
+      }
     }
-  }, [activeIndex, animateToIndex]);
+  }, [activeIndex, tabCount]);
 
   return (
-    <View style={containerStyle} onLayout={handleLayout}>
-      <AnimatedIndicator style={[indicatorStyle, animatedStyle]} />
-      <View style={tabContainerStyle}>
+    <View style={styles.container} onLayout={handleLayout}>
+      <AnimatedIndicator style={[styles.indicator, animatedStyle]} />
+      <View style={styles.tabContainer}>
         {tabs.map((tab, index) => (
           <TabItem
             key={tab.id}
             label={tab.label}
             isActive={tab.id === activeTab}
             onPress={handlers[index]}
+            theme={theme}
           />
         ))}
       </View>

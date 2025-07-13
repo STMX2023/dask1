@@ -14,8 +14,10 @@ ios/
 dist/
 web-build/
 expo-env.d.ts
+
 # dependencies
 node_modules/
+.yarn/cache/
 
 # Native
 .kotlin/
@@ -43,14 +45,3 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
-.yarn/cache/
-android/
-ios/
-.yarn/cache/
-.expo/
-dist/
-web-build/
-node_modules/
-*.apk
-*.aab
-*.ipa

@@ -41,7 +41,7 @@ export const Clock = memo(({ isDark }: ClockProps) => {
         from={{ opacity: 0, translateX: -50 }}
         animate={{ opacity: 1, translateX: 0 }}
         transition={{ delay: 400 }}
-        style={tw`text-5xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}
+        style={tw`text-5xl font-bold ${isDark ? 'text-white' : 'text-black'} mb-2`}
       >
         {formatTime(currentTime)}
       </MotiText>
@@ -50,7 +50,7 @@ export const Clock = memo(({ isDark }: ClockProps) => {
         from={{ opacity: 0, translateX: -50 }}
         animate={{ opacity: 1, translateX: 0 }}
         transition={{ delay: 800 }}
-        style={tw`text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}
+        style={tw`text-lg ${isDark ? 'text-gray-400' : 'text-gray-700'}`}
       >
         {formatDate(currentTime)}
       </MotiText>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define types for our store
@@ -45,7 +45,7 @@ interface AppState {
   getActiveProjectsCount: () => number;
 }
 
-// Create the store with persistence
+// Create the store with persistence and error handling
 export const useAppStore = create<AppState>()(
   devtools(
     persist(
@@ -98,20 +98,19 @@ export const useAppStore = create<AppState>()(
       }),
       {
         name: 'app-storage',
-        storage: {
-          getItem: async (name) => {
-            const value = await AsyncStorage.getItem(name);
-            return value ? JSON.parse(value) : null;
-          },
-          setItem: async (name, value) => {
-            await AsyncStorage.setItem(name, JSON.stringify(value));
-          },
-          removeItem: async (name) => {
-            await AsyncStorage.removeItem(name);
-          },
+        storage: createJSONStorage(() => AsyncStorage),
+        onRehydrateStorage: () => (state) => {
+          if (state) {
+            console.log('Store rehydrated successfully');
+          } else {
+            console.warn('Store rehydration failed');
+          }
         },
       }
-    )
+    ),
+    {
+      name: 'app-store',
+    }
   )
 );
 
