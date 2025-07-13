@@ -58,8 +58,8 @@ const TabIcon = memo<{
         android_disableSound={true}
       >
         <Ionicons 
-          name="add" 
-          size={ICON_SIZES.add} 
+          name="home" 
+          size={ICON_SIZES.default} 
           color={color}
         />
       </Pressable>
@@ -74,11 +74,11 @@ const TabIcon = memo<{
         style={baseStyles.tabItem}
         android_disableSound={true}
       >
-        <View style={[baseStyles.iconGroup, { gap: 8 }]}>
-          <Ionicons name="options" size={ICON_SIZES.group} color={color} />
-          <Ionicons name="mic" size={ICON_SIZES.group} color={color} />
-          <Ionicons name="stats-chart" size={ICON_SIZES.group} color={color} />
-        </View>
+        <Ionicons 
+          name="settings" 
+          size={ICON_SIZES.default} 
+          color={color}
+        />
       </Pressable>
     );
   }
