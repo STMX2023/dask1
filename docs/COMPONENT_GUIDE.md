@@ -83,7 +83,7 @@ const styles = {
 
 ### ✅ DO
 ```typescript
-// Reanimated 3 worklets
+// Reanimated 3 worklets - accessing .value in useAnimatedStyle is safe
 const animStyle = useAnimatedStyle(() => ({
   transform: [{ translateX: x.value }],
 }));
@@ -93,6 +93,23 @@ withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) })
 
 // Spring for interactive
 withSpring(1, { damping: 20, stiffness: 300 })
+
+// Shared value mutations on UI thread
+const handlePress = useCallback(() => {
+  runOnUI(() => {
+    'worklet';
+    translateX.value = withTiming(100);
+  })();
+}, [translateX]);
+
+// Layout callbacks with runOnUI
+const handleLayout = useCallback((event) => {
+  const { width } = event.nativeEvent.layout;
+  runOnUI(() => {
+    'worklet';
+    containerWidth.value = width;
+  })();
+}, [containerWidth]);
 ```
 
 ### ❌ DON'T
@@ -102,6 +119,37 @@ Animated.timing(animValue, { ... })
 
 // Long animations
 withTiming(1, { duration: 1000 }) // Too slow
+
+// ❌ CRITICAL: Never access .value during component render
+const handlePress = () => {
+  translateX.value = withTiming(100); // Causes render warning
+};
+
+// ❌ Direct mutation in layout callbacks
+const handleLayout = (event) => {
+  containerWidth.value = event.nativeEvent.layout.width; // Render warning
+};
+
+// ❌ Mutation in state setters during render
+setExpanded(prev => {
+  height.value = prev ? 100 : 200; // Causes render warning
+  return !prev;
+});
+```
+
+### 🚨 Critical Reanimated Rule
+**Never access or modify shared values with `.value` during React's render phase!**
+
+Always wrap shared value mutations in `runOnUI()`:
+```typescript
+// ✅ Correct
+runOnUI(() => {
+  'worklet';
+  sharedValue.value = newValue;
+})();
+
+// ❌ Wrong - triggers "[Reanimated] Writing to `value` during component render"
+sharedValue.value = newValue;
 ```
 
 ## Memoization Rules
@@ -231,6 +279,8 @@ const LazyComponent = lazy(() => import('./HeavyComponent'));
 - [ ] TypeScript interfaces defined
 - [ ] Dark mode supported
 - [ ] Animations < 300ms
+- [ ] **All shared value mutations wrapped in `runOnUI()`**
+- [ ] No `.value` access during component render
 
 ## Quick Reference
 

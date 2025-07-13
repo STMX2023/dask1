@@ -145,6 +145,64 @@ export const animationConfig = {
 2. **Easing Functions**: Use `Easing.out` for natural feel
 3. **Batch Updates**: Combine related animations
 4. **Cancel on Unmount**: Always cleanup animations
+5. **🚨 Critical**: Never access `.value` during component render
+
+### 4. Shared Value Render Safety
+
+**NEVER access or modify shared values during React's render phase:**
+
+```typescript
+// ❌ BAD - Causes "[Reanimated] Writing to `value` during component render"
+const MyComponent = () => {
+  const handlePress = () => {
+    translateX.value = withTiming(100); // ❌ Render warning
+  };
+  
+  const handleLayout = (event) => {
+    width.value = event.nativeEvent.layout.width; // ❌ Render warning
+  };
+  
+  setExpanded(prev => {
+    height.value = prev ? 100 : 200; // ❌ Render warning
+    return !prev;
+  });
+};
+
+// ✅ GOOD - All mutations wrapped in runOnUI
+const MyComponent = () => {
+  const handlePress = useCallback(() => {
+    runOnUI(() => {
+      'worklet';
+      translateX.value = withTiming(100);
+    })();
+  }, [translateX]);
+  
+  const handleLayout = useCallback((event) => {
+    const { width } = event.nativeEvent.layout;
+    runOnUI(() => {
+      'worklet';
+      containerWidth.value = width;
+    })();
+  }, [containerWidth]);
+  
+  const toggleExpanded = useCallback(() => {
+    setExpanded(prev => {
+      const next = !prev;
+      runOnUI(() => {
+        'worklet';
+        height.value = withTiming(next ? 100 : 200);
+      })();
+      return next;
+    });
+  }, [height]);
+};
+```
+
+**Safe `.value` access locations:**
+- ✅ Inside `useAnimatedStyle()` worklets
+- ✅ Inside `runOnUI()` blocks
+- ✅ Inside gesture handlers
+- ❌ Anywhere else during component render
 
 ## Progressive Rendering Strategy
 
@@ -365,6 +423,8 @@ const fetchData = measure('fetchData', async () => {
 - [ ] Cleanup on unmount
 - [ ] Platform-specific settings applied
 - [ ] No animation during scroll
+- [ ] **All shared value mutations wrapped in `runOnUI()`**
+- [ ] No `.value` access during component render
 
 ### State Management
 - [ ] Using selectors to minimize re-renders
