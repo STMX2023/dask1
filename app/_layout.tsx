@@ -57,6 +57,15 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen 
+            name="camera-modal" 
+            options={{ 
+              presentation: 'fullScreenModal',
+              headerShown: false,
+              animation: 'none', // Remove animation for instant appearance
+              animationDuration: 0,
+            }} 
+          />
         </Stack>
       </ThemeProvider>
     </SafeAreaProvider>

@@ -317,6 +317,11 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     navigation.navigate('settings');
   }, [navigation]);
   
+  // Camera navigation handler
+  const handleCameraPress = useCallback(() => {
+    navigation.navigate('camera-modal');
+  }, [navigation]);
+  
   const tabBarWrapperStyle = useMemo(() => ({
     marginHorizontal: 24,
     marginBottom: insets.bottom,
@@ -349,13 +354,17 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
                       justifyContent: 'center',
                       gap: 8, // Small gap between camera and home
                     }}>
-                      <View style={squareIconStyle}>
+                      <Pressable
+                        onPressIn={handleCameraPress}
+                        style={squareIconStyle}
+                        android_disableSound={true}
+                      >
                         <FontAwesome6 
                           name="camera" 
                           size={ICON_SIZES.default} 
                           color={inactiveColor}
                         />
-                      </View>
+                      </Pressable>
                       <TabIcon
                         key={state.routes[0]?.key}
                         routeName={state.routes[0]?.name || 'index'}
