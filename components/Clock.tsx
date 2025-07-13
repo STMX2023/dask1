@@ -1,5 +1,4 @@
 import React, { useState, useEffect, memo } from 'react';
-import { View, Text } from 'react-native';
 import { MotiText } from 'moti';
 import tw from '../utils/tw';
 

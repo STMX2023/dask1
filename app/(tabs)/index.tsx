@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo, memo } from 'react';
-import { View, Text } from 'react-native';
+import React, { useEffect, useState, memo } from 'react';
+import { View } from 'react-native';
 import { MotiView, MotiText } from 'moti';
 import { Clock } from '../../components/Clock';
 import { getTheme } from '../../constants/Colors';

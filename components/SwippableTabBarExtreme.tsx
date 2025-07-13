@@ -135,14 +135,18 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
   const handleLayout = useCallback((e: LayoutChangeEvent) => {
     const containerWidth = e.nativeEvent.layout.width;
     const width = containerWidth - 12; // Account for padding
-    indicatorWidth.value = width;
     
-    // Set initial position without animation
-    if (activeIndex >= 0) {
-      const position = activeIndex * (width / tabCount);
-      translateX.value = position;
-    }
-  }, [activeIndex, tabCount]);
+    runOnUI(() => {
+      'worklet';
+      indicatorWidth.value = width;
+      
+      // Set initial position without animation
+      if (activeIndex >= 0) {
+        const position = activeIndex * (width / tabCount);
+        translateX.value = position;
+      }
+    })();
+  }, [activeIndex, tabCount, indicatorWidth, translateX]);
 
   // Single animated style
   const animatedStyle = useAnimatedStyle(() => ({

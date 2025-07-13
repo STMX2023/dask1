@@ -11,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import tw from '../utils/tw';
 import { useIsDarkMode } from '../store/useAppStore';
-import { getTheme } from '../constants/Colors';
 
 // Constants
 const INDICATOR_WIDTH = 25;
@@ -109,7 +108,6 @@ TabIcon.displayName = 'TabIcon';
 
 export const CustomTabBar = memo<BottomTabBarProps>(({ 
   state, 
-  descriptors, 
   navigation 
 }) => {
   const isDark = useIsDarkMode();
@@ -207,7 +205,12 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     setIsExpanded(prev => {
       const next = !prev;
       const targetHeight = next ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT;
-      tabBarHeight.value = withTiming(targetHeight, ANIMATION_CONFIG);
+      
+      runOnUI(() => {
+        'worklet';
+        tabBarHeight.value = withTiming(targetHeight, ANIMATION_CONFIG);
+      })();
+      
       return next;
     });
   }, [tabBarHeight]);

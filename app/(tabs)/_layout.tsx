@@ -1,13 +1,11 @@
 import React from 'react';
 import { FontAwesome } from '@expo/vector-icons';
-import { Link, Tabs } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { Tabs } from 'expo-router';
 
 import Colors from '@/constants/Colors';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { CustomTabBar } from '@/components/CustomTabBar';
 import { useIsDarkMode } from '@/store/useAppStore';
-import { getTheme } from '@/constants/Colors';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -20,7 +18,6 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const isDarkMode = useIsDarkMode();
   const themeKey = isDarkMode ? 'dark' : 'light';
-  const theme = getTheme(isDarkMode);
 
   return (
     <Tabs
