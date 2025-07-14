@@ -33,7 +33,7 @@ const ROW_HEIGHT = 48;
 const CONTAINER_PADDING = { top: 12, bottom: 12, horizontal: 24 };
 
 // Row types for different content
-type RowType = 'navigation' | 'timer' | 'controls' | 'custom' | 'top-controls';
+type RowType = 'navigation' | 'timer' | 'controls' | 'custom' | 'top-controls' | 'middle-controls';
 
 interface RowConfig {
   id: string;
@@ -53,6 +53,7 @@ const NAV_CONFIG = {
     icons: ['house', 'gear'], // Custom icons for home page
     rows: [
       { id: 'top-row', type: 'top-controls', height: ROW_HEIGHT, collapsible: false },
+      { id: 'middle-row', type: 'middle-controls', height: ROW_HEIGHT, collapsible: false },
       { id: 'navigation', type: 'navigation', height: ROW_HEIGHT, collapsible: false, alwaysVisible: true }
     ] as RowConfig[]
   },
@@ -155,28 +156,27 @@ const StartStopButton = memo<{
   isRunning: boolean;
   onPress: () => void;
   theme: ReturnType<typeof getTheme>;
-}>(({ isRunning, onPress, theme }) => {
-  const borderColor = isRunning ? theme.error : theme.success;
-  const textColor = isRunning ? theme.error : theme.success;
+  isDark: boolean;
+}>(({ isRunning, onPress, theme, isDark }) => {
+  const backgroundColor = isRunning ? theme.error : theme.success;
+  const textColor = isDark ? theme.background : theme.textInverse;
   
   return (
     <Pressable
       onPressIn={onPress}
       style={{
-        paddingHorizontal: 16,
+        paddingHorizontal: 32,
         paddingVertical: 8,
         borderRadius: 20, // Pill shape
-        backgroundColor: 'transparent',
-        borderWidth: 1.5,
-        borderColor: borderColor,
+        backgroundColor: backgroundColor,
         alignItems: 'center',
         justifyContent: 'center',
-        minWidth: 60,
+        minWidth: 120,
       }}
       android_disableSound={true}
     >
       <Text style={{
-        fontSize: 14,
+        fontSize: 18,
         fontWeight: '600',
         color: textColor,
       }}>
@@ -185,7 +185,8 @@ const StartStopButton = memo<{
     </Pressable>
   );
 }, (prev, next) => 
-  prev.isRunning === next.isRunning
+  prev.isRunning === next.isRunning &&
+  prev.isDark === next.isDark
 );
 
 StartStopButton.displayName = 'StartStopButton';
@@ -450,14 +451,6 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
           />
         </Pressable>
         
-        <View style={iconContainers.squareIcon(40)}>
-          <FontAwesome6 
-            name="microphone" 
-            size={ICON_SIZES.default} 
-            color={inactiveColor}
-          />
-        </View>
-        
         <TabIcon
           key={state.routes[2]?.key}
           routeName={state.routes[2]?.name || 'settings'}
@@ -495,6 +488,7 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
             isRunning={currentTimer.isRunning}
             onPress={handleStartStop}
             theme={getTheme(isDark)}
+            isDark={isDark}
           />
         )}
         
@@ -502,6 +496,28 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
       </View>
     );
   }, [config.showStartStopButton, currentTimer.isRunning, handleStartStop, isDark]);
+  
+  // Render middle controls row (home page - microphone icon)
+  const renderMiddleControlsRow = useCallback(() => {
+    return (
+      <View style={[baseStyles.tabsContainer, {
+        height: ROW_HEIGHT,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }]}>
+        <Pressable
+          style={iconContainers.squareIcon(40)}
+          android_disableSound={true}
+        >
+          <FontAwesome6 
+            name="microphone" 
+            size={ICON_SIZES.default} 
+            color={inactiveColor}
+          />
+        </Pressable>
+      </View>
+    );
+  }, [inactiveColor]);
   
   // Render a single row based on its type
   const renderRow = useCallback((row: RowConfig) => {
@@ -512,10 +528,12 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
         return renderTimerRow();
       case 'top-controls':
         return renderTopControlsRow();
+      case 'middle-controls':
+        return renderMiddleControlsRow();
       default:
         return null;
     }
-  }, [renderNavigationRow, renderTimerRow, renderTopControlsRow]);
+  }, [renderNavigationRow, renderTimerRow, renderTopControlsRow, renderMiddleControlsRow]);
 
   return (
     <View style={baseStyles.container}>
