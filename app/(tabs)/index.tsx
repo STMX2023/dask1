@@ -1,6 +1,7 @@
 import React, { useEffect, useState, memo } from 'react';
 import { View } from 'react-native';
 import { MotiView, MotiText } from 'moti';
+import { useFocusEffect } from '@react-navigation/native';
 import { Clock } from '../../components/Clock';
 import { getTheme } from '../../constants/Colors';
 import { useIsDarkMode } from '../../store/useAppStore';
@@ -8,6 +9,7 @@ import tw from '../../utils/tw';
 
 const TabOneScreen = () => {
   const [timeOfDay, setTimeOfDay] = useState('');
+  const [animationKey, setAnimationKey] = useState(0);
   const isDark = useIsDarkMode();
   const theme = getTheme(isDark);
   
@@ -18,6 +20,13 @@ const TabOneScreen = () => {
     else setTimeOfDay('Evening');
   }, []);
 
+  // Reset animation when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      setAnimationKey(prev => prev + 1);
+    }, [])
+  );
+
   // No need for styles object when using tw
 
   return (
@@ -27,12 +36,13 @@ const TabOneScreen = () => {
       
       {/* Content Below Safe Area */}
       <MotiView
+        key={`content-${animationKey}`}
         from={{ opacity: 0, translateY: -50, scale: 0.9 }}
         animate={{ opacity: 1, translateY: 0, scale: 1 }}
         transition={{ 
           type: 'spring', 
-          damping: 25, 
-          stiffness: 300,
+          damping: 30, 
+          stiffness: 400,
         }}
         style={tw`px-6 pt-20`}
       >
@@ -40,9 +50,10 @@ const TabOneScreen = () => {
           <Clock isDark={isDark} />
           
           <MotiText
-            from={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 100 }}
+            key={`text-${animationKey}`}
+            from={{ opacity: 0, translateX: -50 }}
+            animate={{ opacity: 1, translateX: 0 }}
+            transition={{ delay: 150 }}
             style={tw.style('text-xl font-semibold mt-2', { color: theme.textSecondary })}
           >
             Good {timeOfDay}

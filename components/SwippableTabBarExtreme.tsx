@@ -56,8 +56,8 @@ const TabItem = memo<{
 // Constants
 const TAB_HEIGHT = 40;
 const TIMING_CONFIG = {
-  duration: 200,
-  easing: Easing.out(Easing.cubic),
+  duration: 150,
+  easing: Easing.bezier(0.25, 0.1, 0.25, 1),
 };
 
 TabItem.displayName = 'TabItem';
@@ -128,7 +128,7 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
         }
       })();
     }), 
-    [tabs, onTabChange, tabCount]
+    [tabs, onTabChange, tabCount, indicatorWidth, translateX]
   );
 
   // Single layout handler

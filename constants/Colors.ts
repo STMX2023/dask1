@@ -90,9 +90,9 @@ const darkTheme = {
   backgroundTertiary: baseColors.gray800,
   
   // Surfaces (cards, modals, etc.)
-  surface: baseColors.gray900,
-  surfaceSecondary: baseColors.gray800,
-  surfaceElevated: baseColors.gray800,
+  surface: '#1C1C1E',  // Same as nav bar
+  surfaceSecondary: '#2C2C2E',  // Original color for swippable tab bar
+  surfaceElevated: '#1C1C1E',
   
   // Typography
   textPrimary: baseColors.white,        // High contrast for main text

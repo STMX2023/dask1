@@ -178,7 +178,7 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     return {
       styles: {
         tabBar: tw.style('overflow-hidden', { 
-          backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7'
+          backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7'
         }),
         indicator: tw.style('rounded-full h-0.5 absolute', { 
           backgroundColor: activeIconColor

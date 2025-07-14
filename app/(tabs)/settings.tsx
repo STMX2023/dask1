@@ -1,10 +1,11 @@
 import React, { useState, useMemo, memo } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MotiView } from 'moti';
+import { MotiView, MotiText } from 'moti';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SwippableTabBarExtreme } from '../../components/SwippableTabBarExtreme';
-import { getTheme } from '../../constants/Colors';
+import { getTheme, baseColors } from '../../constants/Colors';
 import { useIsDarkMode, useAppStore } from '../../store/useAppStore';
 import tw from '../../utils/tw';
 
@@ -26,7 +27,7 @@ const SettingsItem = memo<{
       paddingVertical: 16,
       paddingHorizontal: 16,
       backgroundColor: theme.surface,
-      borderRadius: 12,
+      borderRadius: 16,
       marginBottom: 2,
     },
     iconContainer: {
@@ -77,11 +78,11 @@ const SettingsGroup = memo<{
   const theme = getTheme(isDark);
   
   const groupStyle = useMemo(() => ({
-    backgroundColor: theme.surfaceSecondary,
-    borderRadius: 16,
+    backgroundColor: isDark ? baseColors.black : theme.surfaceSecondary,
+    borderRadius: 20,
     padding: 4,
     marginBottom,
-  }), [theme, marginBottom]);
+  }), [theme, marginBottom, isDark]);
 
   return (
     <View style={groupStyle}>
@@ -95,14 +96,28 @@ export default function TabTwoScreen() {
   const theme = getTheme(isDark);
   const { toggleDarkMode } = useAppStore();
   const insets = useSafeAreaInsets();
+  const [animationKey, setAnimationKey] = useState(0);
+  const systemColorScheme = useColorScheme();
   
-  // Theme selector state - sync with actual theme
-  const [selectedTheme, setSelectedTheme] = useState<string>(isDark ? 'dark' : 'light');
-  
-  // Sync selectedTheme with actual theme state
+  // Theme selector state - default to 'system'
+  const [selectedTheme, setSelectedTheme] = useState<string>('system');
+
+  // Reset animation when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      setAnimationKey(prev => prev + 1);
+    }, [])
+  );
+
+  // Handle system theme changes when "system" is selected
   React.useEffect(() => {
-    setSelectedTheme(isDark ? 'dark' : 'light');
-  }, [isDark]);
+    if (selectedTheme === 'system' && systemColorScheme) {
+      const systemPrefersDark = systemColorScheme === 'dark';
+      if (systemPrefersDark !== isDark) {
+        toggleDarkMode();
+      }
+    }
+  }, [systemColorScheme, selectedTheme, isDark, toggleDarkMode]);
   
   const themeOptions = [
     { id: 'light', label: 'Light' },
@@ -113,15 +128,15 @@ export default function TabTwoScreen() {
   const handleThemeChange = (themeId: string) => {
     setSelectedTheme(themeId);
     
-    // Apply theme changes
+    // Apply theme changes immediately for better UX
     if (themeId === 'light' && isDark) {
       toggleDarkMode();
     } else if (themeId === 'dark' && !isDark) {
       toggleDarkMode();
     } else if (themeId === 'system') {
-      // For now, just use system preference (you can detect actual system theme later)
-      const prefersDark = true; // This would come from system detection
-      if (prefersDark !== isDark) {
+      // Use actual system preference
+      const systemPrefersDark = systemColorScheme === 'dark';
+      if (systemPrefersDark !== isDark) {
         toggleDarkMode();
       }
     }
@@ -147,7 +162,15 @@ export default function TabTwoScreen() {
       
       {/* Header Below Safe Area */}
       <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
+        <MotiText
+          key={`title-${animationKey}`}
+          from={{ opacity: 0, translateX: -50 }}
+          animate={{ opacity: 1, translateX: 0 }}
+          transition={{ delay: 50 }}
+          style={styles.title}
+        >
+          Settings
+        </MotiText>
       </View>
 
       <View style={styles.scrollContainer}>
@@ -159,11 +182,24 @@ export default function TabTwoScreen() {
         >
         {/* Theme Selector */}
         <View style={styles.themeSection}>
-          <Text style={styles.sectionTitle}>APPEARANCE</Text>
+          <MotiText
+            key={`appearance-${animationKey}`}
+            from={{ opacity: 0, translateX: -50 }}
+            animate={{ opacity: 1, translateX: 0 }}
+            transition={{ delay: 100 }}
+            style={styles.sectionTitle}
+          >
+            APPEARANCE
+          </MotiText>
           <MotiView
+            key={`theme-${animationKey}`}
             from={{ opacity: 0, translateY: 20 }}
             animate={{ opacity: 1, translateY: 0 }}
-            transition={{ delay: 100 }}
+            transition={{ 
+              delay: 120,
+              type: 'timing',
+              duration: 200
+            }}
           >
             <SwippableTabBarExtreme
               tabs={themeOptions}
@@ -175,9 +211,14 @@ export default function TabTwoScreen() {
 
         {/* Settings Groups */}
         <MotiView
+          key={`settings-${animationKey}`}
           from={{ opacity: 0, translateY: 20 }}
           animate={{ opacity: 1, translateY: 0 }}
-          transition={{ delay: 200 }}
+          transition={{ 
+            delay: 150,
+            type: 'timing',
+            duration: 250
+          }}
           style={tw`px-0`}
         >
           <SettingsGroup>
