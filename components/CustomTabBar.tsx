@@ -13,7 +13,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import tw from '../utils/tw';
 import { useIsDarkMode, useCurrentTimer, useStartTimer, useStopTimer } from '../store/useAppStore';
 import { getTheme } from '../constants/Colors';
-import { gridTemplates, iconContainers } from '../constants/Layouts';
+import { iconContainers } from '../constants/Layouts';
 import { Timer } from './Timer';
 
 // Constants
@@ -28,8 +28,20 @@ const ANIMATION_CONFIG = {
   easing: Easing.out(Easing.cubic),
 };
 
-const COLLAPSED_HEIGHT = 72;
-const EXPANDED_HEIGHT = 180;
+// Row-based system constants
+const ROW_HEIGHT = 48;
+const CONTAINER_PADDING = { top: 12, bottom: 12, horizontal: 24 };
+
+// Row types for different content
+type RowType = 'navigation' | 'timer' | 'controls' | 'custom' | 'top-controls';
+
+interface RowConfig {
+  id: string;
+  type: RowType;
+  height: number;
+  collapsible: boolean;
+  alwaysVisible?: boolean;
+}
 
 // Nav bar configuration per route
 const NAV_CONFIG = {
@@ -38,21 +50,31 @@ const NAV_CONFIG = {
     showArrow: false,
     showStartStopButton: true,
     layout: 'home',
-    icons: ['house', 'gear'] // Custom icons for home page
+    icons: ['house', 'gear'], // Custom icons for home page
+    rows: [
+      { id: 'top-row', type: 'top-controls', height: ROW_HEIGHT, collapsible: false },
+      { id: 'navigation', type: 'navigation', height: ROW_HEIGHT, collapsible: false, alwaysVisible: true }
+    ] as RowConfig[]
   },
   'schedule': { 
     lockExpanded: false, 
     showArrow: false, // No arrow on schedule page
     showStartStopButton: false,
     layout: 'standard',
-    icons: ['house', 'calendar', 'gear'] // Standard icons for schedule
+    icons: ['house', 'calendar', 'gear'], // Standard icons for schedule
+    rows: [
+      { id: 'navigation', type: 'navigation', height: ROW_HEIGHT, collapsible: false, alwaysVisible: true }
+    ] as RowConfig[]
   },
   'settings': { 
     lockExpanded: false, 
     showArrow: false, // No arrow on settings page
     showStartStopButton: false,
     layout: 'standard',
-    icons: ['house', 'calendar', 'gear'] // Standard icons for settings: home, schedule, settings
+    icons: ['house', 'calendar', 'gear'], // Standard icons for settings: home, schedule, settings
+    rows: [
+      { id: 'navigation', type: 'navigation', height: ROW_HEIGHT, collapsible: false, alwaysVisible: true }
+    ] as RowConfig[]
   },
 } as const;
 
@@ -61,13 +83,26 @@ const DEFAULT_CONFIG = {
   showArrow: true,
   showStartStopButton: false,
   layout: 'standard',
-  icons: ['house', 'gear']
+  icons: ['house', 'gear'],
+  rows: [
+    { id: 'navigation', type: 'navigation', height: ROW_HEIGHT, collapsible: false, alwaysVisible: true }
+  ] as RowConfig[]
 } as const;
+
+// Calculate tab bar height based on visible rows
+const calculateTabBarHeight = (rows: RowConfig[], isExpanded: boolean) => {
+  const visibleRows = isExpanded 
+    ? rows 
+    : rows.filter(row => row.alwaysVisible || !row.collapsible);
+  
+  const contentHeight = visibleRows.reduce((sum, row) => sum + row.height, 0);
+  return contentHeight + CONTAINER_PADDING.top + CONTAINER_PADDING.bottom;
+};
 
 // Base styles (theme-independent)
 const baseStyles = {
   container: tw`absolute bottom-0 left-0 right-0`,
-  tabsContainer: tw`flex-row px-8`,
+  tabsContainer: tw`flex-row px-7`,
   tabItem: tw`flex-1 items-center justify-center`,
   iconGroup: tw`flex-row items-center justify-center`,
   arrowButton: tw`absolute right-4 items-center justify-center w-8 h-8`,
@@ -189,10 +224,16 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     };
   }, [isDark]);
   
+  // Calculate initial height based on config
+  const getInitialHeight = () => {
+    const initialExpanded = config.lockExpanded || false;
+    return calculateTabBarHeight(config.rows || [], initialExpanded);
+  };
+  
   // Shared animated values - initialize with stable references
   const translateX = useSharedValue(0);
   const tabPositions = useSharedValue<number[]>([0, 0]); // Pre-allocate for 2 tabs
-  const tabBarHeight = useSharedValue(config.lockExpanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT);
+  const tabBarHeight = useSharedValue(getInitialHeight());
   const borderRadius = useSharedValue(36);
   
   // Arrow expansion state - only relevant for non-locked routes
@@ -252,7 +293,7 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     
     setIsExpanded(prev => {
       const next = !prev;
-      const targetHeight = next ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT;
+      const targetHeight = calculateTabBarHeight(config.rows || [], next);
       
       runOnUI(() => {
         'worklet';
@@ -261,12 +302,12 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
       
       return next;
     });
-  }, [tabBarHeight, config.lockExpanded]);
+  }, [tabBarHeight, config.lockExpanded, config.rows]);
   
   // Update height when route changes
   React.useEffect(() => {
-    const targetHeight = config.lockExpanded ? EXPANDED_HEIGHT : 
-                        (isExpanded ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT);
+    const shouldExpand = config.lockExpanded || (isExpanded && currentRoute === 'index');
+    const targetHeight = calculateTabBarHeight(config.rows || [], shouldExpand);
     
     runOnUI(() => {
       'worklet';
@@ -279,7 +320,7 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
     } else if (!config.lockExpanded && config.lockExpanded !== undefined && isExpanded && currentRoute !== 'index') {
       setIsExpanded(false);
     }
-  }, [config.lockExpanded, currentRoute, isExpanded, tabBarHeight]);
+  }, [config.lockExpanded, currentRoute, isExpanded, tabBarHeight, config.rows]);
   
   // Memoize tab press handlers
   const tabHandlers = useMemo(() => {
@@ -323,175 +364,178 @@ export const CustomTabBar = memo<BottomTabBarProps>(({
   }, [navigation]);
   
   const tabBarWrapperStyle = useMemo(() => ({
-    marginHorizontal: 24,
+    marginHorizontal: CONTAINER_PADDING.horizontal,
     marginBottom: insets.bottom,
   }), [insets.bottom]);
+  
+  // Determine which rows to show
+  const visibleRows = useMemo(() => {
+    if (!config.rows) return [];
+    return isExpanded 
+      ? config.rows 
+      : config.rows.filter(row => row.alwaysVisible || !row.collapsible);
+  }, [config.rows, isExpanded]);
+  
+  // Render navigation row content
+  const renderNavigationRow = useCallback(() => {
+    if (config.layout !== 'home') {
+      // Standard layout: equally distributed icons
+      return (
+        <View style={[baseStyles.tabsContainer, { 
+          height: ROW_HEIGHT,
+          alignItems: 'center',
+          justifyContent: 'space-evenly',
+        }]}>
+          {state.routes.map((route, index) => {
+            const isFocused = state.index === index;
+            const iconName = config.icons[index] || 'circle';
+            
+            return (
+              <TabIcon
+                key={route.key}
+                routeName={route.name}
+                isFocused={isFocused}
+                onPress={tabHandlers[index]}
+                onLayout={handleTabLayout(index)}
+                activeColor={activeColor}
+                inactiveColor={inactiveColor}
+                iconName={iconName}
+              />
+            );
+          })}
+        </View>
+      );
+    }
+    
+    // Home layout with all icons in bottom row
+    return (
+      <View style={[baseStyles.tabsContainer, {
+        height: ROW_HEIGHT,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }]}>
+        <TabIcon
+          key={state.routes[0]?.key}
+          routeName={state.routes[0]?.name || 'index'}
+          isFocused={state.index === 0}
+          onPress={tabHandlers[0]}
+          onLayout={handleTabLayout(0)}
+          activeColor={activeColor}
+          inactiveColor={inactiveColor}
+          iconName="house"
+          isHomeLayout={true}
+        />
+        
+        <Pressable
+          onPressIn={handleCameraPress}
+          style={iconContainers.squareIcon(40)}
+          android_disableSound={true}
+        >
+          <FontAwesome6 
+            name="camera" 
+            size={ICON_SIZES.default} 
+            color={inactiveColor}
+          />
+        </Pressable>
+        
+        <Pressable
+          onPressIn={handleSchedulePress}
+          style={iconContainers.squareIcon(40)}
+          android_disableSound={true}
+        >
+          <FontAwesome6 
+            name="calendar" 
+            size={ICON_SIZES.default} 
+            color={inactiveColor}
+          />
+        </Pressable>
+        
+        <View style={iconContainers.squareIcon(40)}>
+          <FontAwesome6 
+            name="microphone" 
+            size={ICON_SIZES.default} 
+            color={inactiveColor}
+          />
+        </View>
+        
+        <TabIcon
+          key={state.routes[2]?.key}
+          routeName={state.routes[2]?.name || 'settings'}
+          isFocused={state.index === 2}
+          onPress={handleSettingsPress}
+          onLayout={handleTabLayout(1)}
+          activeColor={activeColor}
+          inactiveColor={inactiveColor}
+          iconName="gear"
+          isHomeLayout={true}
+        />
+      </View>
+    );
+  }, [config.layout, config.icons, state, tabHandlers, handleTabLayout, activeColor, inactiveColor, handleSettingsPress, handleCameraPress, handleSchedulePress]);
+  
+  // Render timer row
+  const renderTimerRow = useCallback(() => {
+    return (
+      <View style={{ height: ROW_HEIGHT, justifyContent: 'center', alignItems: 'center' }}>
+        <Timer isCompact={true} />
+      </View>
+    );
+  }, []);
+  
+  // Render top controls row (home page - start button left, timer right)
+  const renderTopControlsRow = useCallback(() => {
+    return (
+      <View style={[baseStyles.tabsContainer, {
+        height: ROW_HEIGHT,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }]}>
+        {config.showStartStopButton && (
+          <StartStopButton
+            isRunning={currentTimer.isRunning}
+            onPress={handleStartStop}
+            theme={getTheme(isDark)}
+          />
+        )}
+        
+        <Timer isCompact={true} />
+      </View>
+    );
+  }, [config.showStartStopButton, currentTimer.isRunning, handleStartStop, isDark]);
+  
+  // Render a single row based on its type
+  const renderRow = useCallback((row: RowConfig) => {
+    switch (row.type) {
+      case 'navigation':
+        return renderNavigationRow();
+      case 'timer':
+        return renderTimerRow();
+      case 'top-controls':
+        return renderTopControlsRow();
+      default:
+        return null;
+    }
+  }, [renderNavigationRow, renderTimerRow, renderTopControlsRow]);
 
   return (
     <View style={baseStyles.container}>
       <View style={tabBarWrapperStyle}>
         <Animated.View style={[styles.tabBar, animatedTabBarStyle]}>
-          {/* Grid layout for home page - 2x3 structure */}
-          {config.layout === 'home' && (() => {
-            const gridLayout = gridTemplates.navigationGrid2x3;
-            const squareIconStyle = iconContainers.squareIcon(48);
-            
-            return (
-              <View style={gridLayout.container}>
-                {/* Left column */}
-                <View style={gridLayout.leftColumn}>
-                  {/* Empty space at top */}
-                  <View style={gridLayout.spacer} />
-                  
-                  {/* Stacked icon pairs - Camera above Home, Mic above Schedule */}
-                  <View style={{
-                    ...gridLayout.bottomRow,
-                    paddingBottom: 16, // Add extra bottom padding
-                  }}>
-                    {/* Camera + Home stack */}
-                    <View style={{
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8, // Small gap between camera and home
-                    }}>
-                      <Pressable
-                        onPressIn={handleCameraPress}
-                        style={squareIconStyle}
-                        android_disableSound={true}
-                      >
-                        <FontAwesome6 
-                          name="camera" 
-                          size={ICON_SIZES.default} 
-                          color={inactiveColor}
-                        />
-                      </Pressable>
-                      <TabIcon
-                        key={state.routes[0]?.key}
-                        routeName={state.routes[0]?.name || 'index'}
-                        isFocused={state.index === 0}
-                        onPress={tabHandlers[0]}
-                        onLayout={handleTabLayout(0)}
-                        activeColor={activeColor}
-                        inactiveColor={inactiveColor}
-                        iconName={config.icons[0] || 'house'}
-                        isHomeLayout={true}
-                      />
-                    </View>
-                    
-                    {/* Mic + Schedule stack */}
-                    <View style={{
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8, // Small gap between mic and schedule
-                    }}>
-                      <View style={squareIconStyle}>
-                        <FontAwesome6 
-                          name="microphone" 
-                          size={ICON_SIZES.default} 
-                          color={inactiveColor}
-                        />
-                      </View>
-                      <Pressable
-                        onPressIn={handleSchedulePress}
-                        style={squareIconStyle}
-                        android_disableSound={true}
-                      >
-                        <FontAwesome6 
-                          name="calendar" 
-                          size={ICON_SIZES.default} 
-                          color={inactiveColor}
-                        />
-                      </Pressable>
-                    </View>
-                  </View>
-                </View>
-                
-                {/* Right column */}
-                <View style={gridLayout.rightColumn}>
-                  {/* Top - Timer */}
-                  <View style={gridLayout.singleItem}>
-                    <Timer isCompact={true} />
-                  </View>
-                  
-                  {/* Middle - Empty space */}
-                  <View style={gridLayout.spacer} />
-                  
-                  {/* Bottom - Settings and Start/Stop */}
-                  <View style={{
-                    ...gridLayout.bottomRow,
-                    paddingBottom: 16, // Add extra bottom padding
-                  }}>
-                    <TabIcon
-                      key={state.routes[1]?.key}
-                      routeName={state.routes[1]?.name || 'settings'}
-                      isFocused={state.index === 1}
-                      onPress={handleSettingsPress}
-                      onLayout={handleTabLayout(1)}
-                      activeColor={activeColor}
-                      inactiveColor={inactiveColor}
-                      iconName={config.icons[1] || 'gear'}
-                      isHomeLayout={true}
-                    />
-                    
-                    {config.showStartStopButton && (
-                      <StartStopButton
-                        isRunning={currentTimer.isRunning}
-                        onPress={handleStartStop}
-                        theme={getTheme(isDark)}
-                      />
-                    )}
-                  </View>
-                </View>
+          <View style={{ paddingTop: CONTAINER_PADDING.top, paddingBottom: CONTAINER_PADDING.bottom }}>
+            {/* Render visible rows */}
+            {visibleRows.map((row) => (
+              <View key={row.id}>
+                {renderRow(row)}
               </View>
-            );
-          })()}
-          
-          {/* Tab icons container */}
-          <View style={{ 
-            position: 'absolute',
-            bottom: (COLLAPSED_HEIGHT - 48) / 2,
-            left: 0,
-            right: 0,
-            height: 48,
-          }}>
-            {config.layout !== 'home' && (
-              // Standard layout: equally distributed icons
-              <View style={[baseStyles.tabsContainer, { 
-                height: '100%',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingTop: 0,
-                paddingBottom: 0,
-              }]}>
-                {state.routes.map((route, index) => {
-                  const isFocused = state.index === index;
-                  const iconName = config.icons[index] || 'circle';
-                  
-                  return (
-                    <TabIcon
-                      key={route.key}
-                      routeName={route.name}
-                      isFocused={isFocused}
-                      onPress={tabHandlers[index]}
-                      onLayout={handleTabLayout(index)}
-                      activeColor={activeColor}
-                      inactiveColor={inactiveColor}
-                      iconName={iconName}
-                    />
-                  );
-                })}
-              </View>
-            )}
+            ))}
           </View>
-
-          {/* Active tab indicator - Removed as color system handles active state */}
           
           {/* Expansion arrow button - only show if config allows */}
           {config.showArrow && (
             <Pressable
               style={[baseStyles.arrowButton, { 
                 position: 'absolute',
-                bottom: (COLLAPSED_HEIGHT - 32) / 2,
+                bottom: CONTAINER_PADDING.bottom + 8,
                 right: 32,
               }]}
               onPress={toggleExpansion}

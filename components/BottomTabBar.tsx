@@ -70,7 +70,7 @@ export const BottomTabBar = memo<BottomTabBarProps>(({
   const tabCount = tabs.length;
   
   // Layout handler
-  const handleLayout = useCallback((event: any) => {
+  const handleLayout = useCallback((event: { nativeEvent: { layout: { width: number } } }) => {
     const width = event.nativeEvent.layout.width;
     containerWidth.value = width;
     
@@ -78,7 +78,7 @@ export const BottomTabBar = memo<BottomTabBarProps>(({
     const tabWidth = width / tabCount;
     const position = activeIndex * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2;
     translateX.value = position;
-  }, [activeIndex, tabCount]);
+  }, [activeIndex, tabCount, containerWidth, translateX]);
   
   // Tab press handlers
   const handleTabPress = useCallback((index: number, tabId: string) => {
@@ -88,7 +88,7 @@ export const BottomTabBar = memo<BottomTabBarProps>(({
     const tabWidth = containerWidth.value / tabCount;
     const position = index * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2;
     translateX.value = withTiming(position, ANIMATION_CONFIG);
-  }, [onTabChange, containerWidth, tabCount]);
+  }, [onTabChange, containerWidth, tabCount, translateX]);
   
   // Animated indicator style
   const animatedIndicatorStyle = useAnimatedStyle(() => ({
@@ -103,7 +103,7 @@ export const BottomTabBar = memo<BottomTabBarProps>(({
       const position = activeIndex * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2;
       translateX.value = withTiming(position, ANIMATION_CONFIG);
     }
-  }, [activeIndex, tabCount, containerWidth]);
+  }, [activeIndex, tabCount, containerWidth, translateX]);
   
   return (
     <View style={containerStyle} onLayout={handleLayout}>
