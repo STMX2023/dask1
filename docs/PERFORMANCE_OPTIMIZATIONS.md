@@ -96,6 +96,21 @@ const updateItem = useAppStore(state => state.updateItem);
 
 ## Animation Architecture
 
+### Animation Strategy
+
+#### ✅ **Moti**: For simple, declarative animations
+```typescript
+<MotiView animate={{ opacity: 1 }} />
+```
+
+#### ✅ **Reanimated**: For complex, performance-critical animations
+```typescript
+// Worklets, shared values, gesture handling
+const animatedStyle = useAnimatedStyle(() => ({
+  transform: [{ translateX: x.value }],
+}));
+```
+
 ### 1. Reanimated 3 Worklet Pattern
 
 All animations run on the UI thread for 60 FPS:

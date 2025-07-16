@@ -79,6 +79,21 @@ const styles = {
 <View style={[tw`flex-1`, tw`p-4`]} /> // Multiple tw calls
 ```
 
+## Animation Strategy
+
+### ✅ **Moti**: For simple, declarative animations
+```typescript
+<MotiView animate={{ opacity: 1 }} />
+```
+
+### ✅ **Reanimated**: For complex, performance-critical animations
+```typescript
+// Worklets, shared values, gesture handling
+const animatedStyle = useAnimatedStyle(() => ({
+  transform: [{ translateX: x.value }],
+}));
+```
+
 ## Animation Rules
 
 ### ✅ DO

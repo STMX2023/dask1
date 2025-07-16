@@ -16,9 +16,10 @@ export const DelayedRender: React.FC<DelayedRenderProps> = ({
 
   useEffect(() => {
     if (delay === 0) {
-      InteractionManager.runAfterInteractions(() => {
+      const interaction = InteractionManager.runAfterInteractions(() => {
         setShouldRender(true);
       });
+      return () => interaction.cancel();
     } else {
       const timer = setTimeout(() => {
         setShouldRender(true);

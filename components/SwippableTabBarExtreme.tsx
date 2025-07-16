@@ -1,5 +1,6 @@
 import React, { memo, useMemo, useCallback } from 'react';
-import { View, Text, Pressable, LayoutChangeEvent } from 'react-native';
+import { View, Text, Pressable, LayoutChangeEvent, ViewStyle } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -26,7 +27,7 @@ const TabItem = memo<{
   label: string;
   isActive: boolean;
   onPress: () => void;
-  theme: any;
+  theme: ReturnType<typeof getTheme>;
 }>(({ label, isActive, onPress, theme }) => {
   const styles = useMemo(() => ({
     container: {
@@ -37,8 +38,10 @@ const TabItem = memo<{
     },
     text: {
       fontSize: 14,
-      fontWeight: isActive ? '600' as const : '400' as const,
-      color: isActive ? theme.textPrimary : theme.textTertiary,
+      fontWeight: isActive ? '500' as const : '500' as const,
+      color: isActive ? theme.textPrimary : theme.textInverse,  // White text on blue background
+      paddingHorizontal: 8,
+      textAlign: 'center' as const,
     }
   }), [isActive, theme]);
 
@@ -54,7 +57,28 @@ const TabItem = memo<{
 });
 
 // Constants
-const TAB_HEIGHT = 40;
+const TAB_HEIGHT = 40; // Height of the selector pill (primary measurement)
+const PILL_PADDING_VERTICAL = 4; // Top and bottom padding
+const PILL_PADDING_HORIZONTAL = 4; // Left and right padding
+const CONTAINER_HEIGHT = TAB_HEIGHT + (PILL_PADDING_VERTICAL * 2); // Auto-calculated container height
+
+// Shadow/Elevation settings for the selector pill
+const PILL_SHADOW_LIGHT = {
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 7 },
+  shadowOpacity: 0.20,
+  shadowRadius: 7,
+  elevation: 7, // Android elevation
+};
+
+const PILL_SHADOW_DARK = {
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.4,
+  shadowRadius: 6,
+  elevation: 6, // Higher elevation for dark mode
+};
+
 const TIMING_CONFIG = {
   duration: 150,
   easing: Easing.bezier(0.25, 0.1, 0.25, 1),
@@ -65,10 +89,15 @@ TabItem.displayName = 'TabItem';
 // Create animated component once
 const AnimatedIndicator = Animated.View;
 
-export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
+interface SwippableTabBarExtremePropsWithStyle extends SwippableTabBarExtremeProps {
+  style?: ViewStyle;
+}
+
+export const SwippableTabBarExtreme = memo<SwippableTabBarExtremePropsWithStyle>(({
   tabs,
   activeTab,
   onTabChange,
+  style,
 }) => {
   // Get theme
   const isDark = useIsDarkMode();
@@ -84,25 +113,26 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
   // Dynamic styles based on theme
   const styles = useMemo(() => ({
     container: {
-      backgroundColor: theme.surfaceSecondary,
-      borderRadius: 24,
-      padding: 6,
+      height: CONTAINER_HEIGHT,
+      borderRadius: CONTAINER_HEIGHT / 2, // Fully rounded
+      paddingVertical: PILL_PADDING_VERTICAL,
+      paddingHorizontal: PILL_PADDING_HORIZONTAL,
+      backgroundColor: theme.blue,  // Using solid blue instead of gradient
+      position: 'relative' as const,
     },
     tabContainer: {
       flexDirection: 'row' as const,
+      height: TAB_HEIGHT,
+      alignItems: 'center' as const,
     },
     indicator: {
       position: 'absolute' as const,
-      top: 6,
-      left: 6,
+      top: PILL_PADDING_VERTICAL,
+      left: PILL_PADDING_HORIZONTAL,
       backgroundColor: theme.surface,
-      borderRadius: 18,
-      // Shadow for depth
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: isDark ? 0.3 : 0.1,
-      shadowRadius: 2,
-      elevation: 2,
+      borderRadius: TAB_HEIGHT / 2, // Fully rounded pill
+      // Apply theme-specific shadow
+      ...(isDark ? PILL_SHADOW_DARK : PILL_SHADOW_LIGHT),
     }
   }), [theme, isDark]);
   
@@ -116,6 +146,8 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
   // Pre-create all handlers
   const handlers = useMemo(() => 
     tabs.map((tab, index) => () => {
+      // Light haptic feedback for tab selection
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onTabChange(tab.id);
       // Animate on UI thread directly
       runOnUI(() => {
@@ -134,15 +166,15 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
   // Single layout handler
   const handleLayout = useCallback((e: LayoutChangeEvent) => {
     const containerWidth = e.nativeEvent.layout.width;
-    const width = containerWidth - 12; // Account for padding
+    const availableWidth = containerWidth - (PILL_PADDING_HORIZONTAL * 2); // Account for horizontal padding
     
     runOnUI(() => {
       'worklet';
-      indicatorWidth.value = width;
+      indicatorWidth.value = availableWidth;
       
       // Set initial position without animation
       if (activeIndex >= 0) {
-        const position = activeIndex * (width / tabCount);
+        const position = activeIndex * (availableWidth / tabCount);
         translateX.value = position;
       }
     })();
@@ -151,26 +183,29 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
   // Single animated style
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
-    width: (indicatorWidth.value / tabCount) - 4,
+    width: indicatorWidth.value / tabCount,
     height: TAB_HEIGHT,
   }));
 
   // Update on external change
   React.useEffect(() => {
     if (activeIndex >= 0) {
-      const width = indicatorWidth.value;
-      if (width > 0) {
-        runOnUI(() => {
-          'worklet';
+      runOnUI(() => {
+        'worklet';
+        const width = indicatorWidth.value;
+        if (width > 0) {
           const position = activeIndex * (width / tabCount);
           translateX.value = withTiming(position, TIMING_CONFIG);
-        })();
-      }
+        }
+      })();
     }
-  }, [activeIndex, tabCount]);
+  }, [activeIndex, tabCount, indicatorWidth, translateX]);
 
   return (
-    <View style={styles.container} onLayout={handleLayout}>
+    <View
+      style={[styles.container, style]}
+      onLayout={handleLayout}
+    >
       <AnimatedIndicator style={[styles.indicator, animatedStyle]} />
       <View style={styles.tabContainer}>
         {tabs.map((tab, index) => (
@@ -178,7 +213,7 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
             key={tab.id}
             label={tab.label}
             isActive={tab.id === activeTab}
-            onPress={handlers[index]}
+            onPress={handlers[index] || (() => {})}
             theme={theme}
           />
         ))}
@@ -188,7 +223,8 @@ export const SwippableTabBarExtreme = memo<SwippableTabBarExtremeProps>(({
 }, (prev, next) => 
   prev.activeTab === next.activeTab && 
   prev.tabs === next.tabs &&
-  prev.onTabChange === next.onTabChange
+  prev.onTabChange === next.onTabChange &&
+  prev.style === next.style
 );
 
 SwippableTabBarExtreme.displayName = 'SwippableTabBarExtreme';

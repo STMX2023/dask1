@@ -26,6 +26,7 @@ const baseColors = {
   blue: '#2563EB',      // blue-600
   blueLight: '#60A5FA', // blue-400
   blueDark: '#1D4ED8',  // blue-700
+  blueBright: '#3B82F6', // blue-500 - brighter blue for light mode
 };
 
 // Light mode theme
@@ -38,6 +39,7 @@ const lightTheme = {
   // Surfaces (cards, modals, etc.)
   surface: baseColors.white,
   surfaceSecondary: baseColors.gray50,
+  surfaceTertiary: baseColors.gray100,  // For swipable tab bar
   surfaceElevated: baseColors.white,
   
   // Typography
@@ -49,26 +51,27 @@ const lightTheme = {
   // Borders and dividers
   border: baseColors.gray200,
   borderSecondary: baseColors.gray300,
-  divider: baseColors.gray200,
+  borderSubtle: baseColors.gray200,  // Very light border for subtle separation
+  divider: baseColors.gray200, // For tab bar
   
   // Interactive elements
-  interactive: baseColors.blue,
-  interactiveHover: baseColors.blueDark,
-  interactivePressed: baseColors.blueDark,
+  interactive: baseColors.blueBright,  // Using brighter blue for light mode
+  interactiveHover: baseColors.blue,
+  interactivePressed: baseColors.blue,
   interactiveDisabled: baseColors.gray300,
   
   // Navigation/tabs
   tabBackground: baseColors.white,
   tabIconDefault: baseColors.gray400,
-  tabIconSelected: baseColors.blue,
-  tabIndicator: baseColors.blue,
+  tabIconSelected: baseColors.blueBright,  // Using brighter blue for light mode
+  tabIndicator: baseColors.blueBright,  // Using brighter blue for light mode
   
   // Accent colors
   orange: baseColors.orange,
   orangeLight: baseColors.orangeLight,
   red: baseColors.red,
   redLight: baseColors.redLight,
-  blue: baseColors.blue,
+  blue: baseColors.blueBright,  // Using brighter blue for light mode
   blueLight: baseColors.blueLight,
   
   // Status colors with proper contrast
@@ -92,6 +95,7 @@ const darkTheme = {
   // Surfaces (cards, modals, etc.)
   surface: '#1C1C1E',  // Same as nav bar
   surfaceSecondary: '#2C2C2E',  // Original color for swippable tab bar
+  surfaceTertiary: '#2C2C2E',  // For swipable tab bar (same as surfaceSecondary in dark mode)
   surfaceElevated: '#1C1C1E',
   
   // Typography
@@ -103,6 +107,7 @@ const darkTheme = {
   // Borders and dividers
   border: baseColors.gray700,
   borderSecondary: baseColors.gray600,
+  borderSubtle: baseColors.black,  // Full black border in dark mode
   divider: baseColors.gray700,
   
   // Interactive elements
@@ -130,7 +135,7 @@ const darkTheme = {
   successLight: '#059669', // green-600
   warning: baseColors.orangeLight,
   warningLight: baseColors.orange,
-  error: '#F87171',        // red-400 - much brighter red for dark mode
+  error: '#DC2626',        // red-600 - same red as light mode
   errorLight: baseColors.red,
   info: baseColors.blueLight,
   infoLight: baseColors.blue,
@@ -179,6 +184,18 @@ export const semanticColors = {
       inactiveIcon: '#777777',
       indicator: baseColors.white,
     }
+  },
+  
+  // Gradient tokens
+  gradients: {
+    successGreen: {
+      light: ['#10B981', '#059669'], // green-500 to green-600
+      dark: ['#34D399', '#10B981'],  // green-400 to green-500
+    },
+    primaryBlue: {
+      light: ['#3B82F6', '#1D4ED8'], // blue-500 to blue-700
+      dark: ['#60A5FA', '#3B82F6'],  // blue-400 to blue-500
+    },
   },
   
   // Button colors

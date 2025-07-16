@@ -29,5 +29,7 @@ export const useAnimationFrame = (callback: (deltaTime: number) => void, enabled
         }
       };
     }
+    // Return empty cleanup function when disabled
+    return () => {};
   }, [animate, enabled]);
 };

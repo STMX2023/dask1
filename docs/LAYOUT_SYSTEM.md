@@ -163,6 +163,21 @@ export default function Screen() {
 }
 ```
 
+## Animation Strategy
+
+### ✅ **Moti**: For simple, declarative animations
+```typescript
+<MotiView animate={{ opacity: 1 }} />
+```
+
+### ✅ **Reanimated**: For complex, performance-critical animations
+```typescript
+// Worklets, shared values, gesture handling
+const animatedStyle = useAnimatedStyle(() => ({
+  transform: [{ translateX: x.value }],
+}));
+```
+
 ## Summary
 
 The most reliable flex system combines:

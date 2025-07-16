@@ -11,6 +11,21 @@ A production-ready React Native application built with Expo SDK 53, optimized fo
   - React Native Reanimated 3 (Worklet-based animations)
   - Moti (Declarative animations)
   - Tailwind CSS via twrnc (Optimized with aggressive caching)
+  
+### Animation Strategy
+
+#### ✅ **Moti**: For simple, declarative animations
+```typescript
+<MotiView animate={{ opacity: 1 }} />
+```
+
+#### ✅ **Reanimated**: For complex, performance-critical animations
+```typescript
+// Worklets, shared values, gesture handling
+const animatedStyle = useAnimatedStyle(() => ({
+  transform: [{ translateX: x.value }],
+}));
+```
 - **State Management**: Zustand with AsyncStorage persistence
 - **Database**: op-sqlite (High-performance SQLite with prepared statements)
 - **Cloud Sync**: Supabase (Real-time database with offline support)
