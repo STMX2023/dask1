@@ -7,25 +7,28 @@ A production-ready React Native application built with Expo SDK 53, optimized fo
 - **Framework**: React Native 0.79.5 with Expo SDK 53
 - **Language**: TypeScript with strict type checking
 - **Navigation**: Expo Router (File-based routing)
-- **UI/Animations**: 
+- **UI/Animations**:
   - React Native Reanimated 3 (Worklet-based animations)
   - Moti (Declarative animations)
   - Tailwind CSS via twrnc (Optimized with aggressive caching)
-  
+
 ### Animation Strategy
 
 #### ✅ **Moti**: For simple, declarative animations
+
 ```typescript
 <MotiView animate={{ opacity: 1 }} />
 ```
 
 #### ✅ **Reanimated**: For complex, performance-critical animations
+
 ```typescript
 // Worklets, shared values, gesture handling
 const animatedStyle = useAnimatedStyle(() => ({
   transform: [{ translateX: x.value }],
 }));
 ```
+
 - **State Management**: Zustand with AsyncStorage persistence
 - **Database**: op-sqlite (High-performance SQLite with prepared statements)
 - **Cloud Sync**: Supabase (Real-time database with offline support)
@@ -44,6 +47,7 @@ const animatedStyle = useAnimatedStyle(() => ({
 ## 🎯 Key Features
 
 ### Performance
+
 - **Ultra-Fast Mount**: Initial screen load under 25ms
 - **Smooth Animations**: Consistent 60 FPS with worklet-based animations
 - **Progressive Rendering**: Strategic component loading for instant interactivity
@@ -51,12 +55,14 @@ const animatedStyle = useAnimatedStyle(() => ({
 - **Optimized Bundle**: Code splitting with intelligent preloading
 
 ### User Experience
+
 - **Offline-First**: Full functionality without internet connection
 - **Real-Time Sync**: Instant updates across devices when online
 - **Adaptive Performance**: Platform-specific optimizations
 - **Responsive Design**: Fluid layouts for all screen sizes
 
 ### Developer Experience
+
 - **Type Safety**: Full TypeScript coverage
 - **Hot Reload**: Instant feedback during development
 - **Performance Monitoring**: Built-in profiling tools
@@ -76,8 +82,6 @@ dask1/
 ├── components/            # Reusable components
 │   ├── OptimizedFloatingParticles.tsx  # Performance-tuned animations
 │   ├── OptimizedMorphingGradient.tsx   # GPU-accelerated gradients
-│   ├── StatCard.tsx       # Memoized stat displays
-│   ├── UserCard.tsx       # Optimized user cards
 │   ├── Clock.tsx          # Isolated time updates
 │   └── ...
 ├── hooks/                 # Custom React hooks
@@ -102,9 +106,9 @@ dask1/
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn/pnpm
-- Expo CLI: `npm install -g expo-cli`
-- EAS CLI: `npm install -g eas-cli`
+- Node.js 18+ and Yarn
+- Expo CLI: `yarn global add expo-cli`
+- EAS CLI: `yarn global add eas-cli`
 - iOS Simulator (Mac only) or Android Emulator
 - Git with configured SSH keys
 
@@ -116,7 +120,7 @@ git clone [repository-url]
 cd dask1
 
 # Install dependencies
-npm install
+yarn install
 
 # iOS specific (Mac only)
 cd ios && pod install && cd ..
@@ -130,16 +134,16 @@ cp .env.example .env
 
 ```bash
 # Start the development server
-npm start
+yarn start
 
 # Run on iOS Simulator
-npm run ios
+yarn ios
 
 # Run on Android Emulator
-npm run android
+yarn android
 
 # Clear cache and start fresh
-npx expo start --clear
+yarn expo start --clear
 ```
 
 ## 🎨 Development Guidelines
@@ -199,23 +203,21 @@ MyComponent.displayName = 'MyComponent';
 #### Example Animation
 
 ```typescript
-import Animated, { 
-  useAnimatedStyle, 
-  withTiming,
-  Easing 
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 
 const animatedStyle = useAnimatedStyle(() => ({
   opacity: withTiming(1, {
     duration: 200,
-    easing: Easing.out(Easing.ease)
+    easing: Easing.out(Easing.ease),
   }),
-  transform: [{
-    translateY: withTiming(0, {
-      duration: 250,
-      easing: Easing.out(Easing.ease)
-    })
-  }]
+  transform: [
+    {
+      translateY: withTiming(0, {
+        duration: 250,
+        easing: Easing.out(Easing.ease),
+      }),
+    },
+  ],
 }));
 ```
 
@@ -239,14 +241,14 @@ const animatedStyle = useAnimatedStyle(() => ({
 
 ## 📊 Performance Targets
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| Initial Mount | < 30ms | ✅ 20-25ms |
-| Re-renders | < 16ms | ✅ 0.5-2ms |
-| Animation FPS | 60 FPS | ✅ 60 FPS |
-| Time to Interactive | < 100ms | ✅ 50-80ms |
-| Bundle Size (iOS) | < 50MB | ✅ 42MB |
-| Bundle Size (Android) | < 40MB | ✅ 38MB |
+| Metric                | Target  | Current    |
+| --------------------- | ------- | ---------- |
+| Initial Mount         | < 30ms  | ✅ 20-25ms |
+| Re-renders            | < 16ms  | ✅ 0.5-2ms |
+| Animation FPS         | 60 FPS  | ✅ 60 FPS  |
+| Time to Interactive   | < 100ms | ✅ 50-80ms |
+| Bundle Size (iOS)     | < 50MB  | ✅ 42MB    |
+| Bundle Size (Android) | < 40MB  | ✅ 38MB    |
 
 ## 🔧 Build & Deployment
 
@@ -254,14 +256,14 @@ const animatedStyle = useAnimatedStyle(() => ({
 
 ```bash
 # iOS Development Build
-npx expo run:ios
+yarn expo run:ios
 
-# Android Development Build  
-npx expo run:android
+# Android Development Build
+yarn expo run:android
 
 # Production-like builds
-npx expo run:ios --configuration Release
-npx expo run:android --variant release
+yarn expo run:ios --configuration Release
+yarn expo run:android --variant release
 ```
 
 ### EAS Build (Recommended)
@@ -287,62 +289,69 @@ eas submit --platform android
 ## 🧪 Testing Strategy
 
 ### Unit Tests
+
 ```bash
 # Run all tests
-npm test
+yarn test
 
 # Watch mode for development
-npm test -- --watch
+yarn test --watch
 
 # Coverage report
-npm test -- --coverage
+yarn test --coverage
 ```
 
 ### Integration Tests
+
 ```bash
 # Run E2E tests (Detox)
-npm run e2e:ios
-npm run e2e:android
+yarn e2e:ios
+yarn e2e:android
 ```
 
 ### Performance Tests
+
 ```bash
 # Run performance benchmarks
-npm run test:performance
+yarn test:performance
 ```
 
 ## 📝 Code Quality
 
 ### Pre-commit Checks
+
 - ESLint validation
 - Prettier formatting
 - TypeScript compilation
 - Unit test execution
 
 ### Manual Checks
+
 ```bash
 # Lint check
-npm run lint
+yarn lint
 
 # Auto-fix issues
-npm run lint:fix
+yarn lint:fix
 
 # Format code
-npm run format
+yarn format
 
 # Type checking
-npm run type-check
+yarn type-check
 ```
 
 ## 🚨 Monitoring & Debugging
 
 ### Development Tools
+
 - React DevTools
 - Flipper Integration
 - Custom Performance Monitor
 - Reanimated Chrome Debugger
 
 ### Performance Monitoring
+
 ```typescript
 // Wrap components to monitor
 <PerformanceProfiler id="MyComponent">
@@ -353,16 +362,19 @@ npm run type-check
 ### Common Issues & Solutions
 
 #### High Re-render Count
+
 - Check memo dependencies
 - Use selectors in Zustand
 - Verify useCallback dependencies
 
 #### Animation Jank
+
 - Move to worklet functions
 - Reduce animation complexity
 - Check for main thread blocking
 
 #### Slow Mount Times
+
 - Implement progressive rendering
 - Use lazy loading
 - Optimize initial data fetching
@@ -372,11 +384,12 @@ npm run type-check
 1. **Fork & Clone** the repository
 2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
 3. **Commit changes**: `git commit -m 'Add amazing feature'`
-4. **Run quality checks**: `npm run lint && npm test`
+4. **Run quality checks**: `yarn lint && yarn test`
 5. **Push branch**: `git push origin feature/amazing-feature`
 6. **Open Pull Request** with detailed description
 
 ### Commit Convention
+
 - `feat:` New features
 - `fix:` Bug fixes
 - `perf:` Performance improvements

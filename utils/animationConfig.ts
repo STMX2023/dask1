@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 export const animationConfig = {
   // Reduce animation complexity on Android for better performance
   shouldReduceMotion: Platform.OS === 'android',
-  
+
   // Animation durations
   durations: {
     fast: 200,
@@ -12,7 +12,7 @@ export const animationConfig = {
     slow: 500,
     verySlow: 1000,
   },
-  
+
   // Spring configurations
   springs: {
     tight: {
@@ -28,7 +28,7 @@ export const animationConfig = {
       stiffness: 200,
     },
   },
-  
+
   // Performance optimizations
   performance: {
     maxParticles: Platform.OS === 'ios' ? 15 : 8,
@@ -39,11 +39,15 @@ export const animationConfig = {
 };
 
 // Helper to get optimized animation config
-export const getOptimizedAnimation = (type: 'spring' | 'timing', customConfig?: any) => {
-  const baseConfig = type === 'spring' 
-    ? animationConfig.springs.tight 
-    : { duration: animationConfig.durations.normal };
-    
+export const getOptimizedAnimation = (
+  type: 'spring' | 'timing',
+  customConfig?: Record<string, unknown>,
+) => {
+  const baseConfig =
+    type === 'spring'
+      ? animationConfig.springs.tight
+      : { duration: animationConfig.durations.normal };
+
   return {
     type,
     ...baseConfig,

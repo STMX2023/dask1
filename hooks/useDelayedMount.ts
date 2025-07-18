@@ -9,12 +9,12 @@ export const useDelayedMount = (delay = 0): boolean => {
       const handle = InteractionManager.runAfterInteractions(() => {
         setIsMounted(true);
       });
-      return () => handle.cancel();
+      return () => { handle.cancel(); };
     } else {
       const timer = setTimeout(() => {
         setIsMounted(true);
       }, delay);
-      return () => clearTimeout(timer);
+      return () => { clearTimeout(timer); };
     }
   }, [delay]);
 

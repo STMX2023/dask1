@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import { MotiView, MotiText } from 'moti';
 import { getTheme } from '../constants/Colors';
 import { useIsDarkMode } from '../store/useAppStore';
@@ -13,14 +13,14 @@ const ScheduleScreen = () => {
     <View style={tw.style('flex-1', { backgroundColor: theme.background })}>
       {/* Transparent Safe Area */}
       <View style={tw`absolute top-0 left-0 right-0 h-15 z-50`} />
-      
+
       {/* Content Below Safe Area */}
       <MotiView
         from={{ opacity: 0, translateY: -50, scale: 0.9 }}
         animate={{ opacity: 1, translateY: 0, scale: 1 }}
-        transition={{ 
-          type: 'spring', 
-          damping: 25, 
+        transition={{
+          type: 'spring',
+          damping: 25,
           stiffness: 300,
         }}
         style={tw`px-6 pt-20`}
@@ -32,16 +32,16 @@ const ScheduleScreen = () => {
             transition={{ delay: 200 }}
             style={tw.style('text-4xl font-bold mb-4', { color: theme.textPrimary })}
           >
-            Schedule
+            <Text>Schedule</Text>
           </MotiText>
-          
+
           <MotiText
             from={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 300 }}
             style={tw.style('text-xl font-semibold', { color: theme.textSecondary })}
           >
-            Your schedule will be displayed here
+            <Text>Your schedule will be displayed here</Text>
           </MotiText>
         </View>
       </MotiView>

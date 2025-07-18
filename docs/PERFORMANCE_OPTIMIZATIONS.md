@@ -3,6 +3,7 @@
 This document provides a comprehensive guide to performance optimizations implemented in Dask1, achieving industry-leading performance metrics for React Native applications.
 
 ## Table of Contents
+
 1. [Performance Achievements](#performance-achievements)
 2. [React Optimization Patterns](#react-optimization-patterns)
 3. [Animation Architecture](#animation-architecture)
@@ -17,13 +18,14 @@ This document provides a comprehensive guide to performance optimizations implem
 ## Performance Achievements
 
 ### Before vs After Optimization
-| Metric | Before | After | Improvement |
-|--------|---------|--------|-------------|
-| Initial Mount | 90-118ms | 20-25ms | **75% faster** |
-| Re-renders | 40-70ms | 0.5-2ms | **95% faster** |
-| Animation FPS | 30-45 | 60 | **100% improvement** |
-| Bundle Size | 58MB | 42MB | **28% smaller** |
-| Time to Interactive | 300ms | 50ms | **83% faster** |
+
+| Metric              | Before   | After   | Improvement          |
+| ------------------- | -------- | ------- | -------------------- |
+| Initial Mount       | 90-118ms | 20-25ms | **75% faster**       |
+| Re-renders          | 40-70ms  | 0.5-2ms | **95% faster**       |
+| Animation FPS       | 30-45    | 60      | **100% improvement** |
+| Bundle Size         | 58MB     | 42MB    | **28% smaller**      |
+| Time to Interactive | 300ms    | 50ms    | **83% faster**       |
 
 ## React Optimization Patterns
 
@@ -51,24 +53,27 @@ MyComponent.displayName = 'MyComponent';
 ### 2. Hook Optimization Patterns
 
 #### useMemo for Expensive Computations
+
 ```typescript
 // ❌ BAD - Recalculates on every render
-const processedData = data.map(item => ({
+const processedData = data.map((item) => ({
   ...item,
-  computed: expensiveFunction(item)
+  computed: expensiveFunction(item),
 }));
 
 // ✅ GOOD - Only recalculates when data changes
-const processedData = useMemo(() => 
-  data.map(item => ({
-    ...item,
-    computed: expensiveFunction(item)
-  })), 
+const processedData = useMemo(
+  () =>
+    data.map((item) => ({
+      ...item,
+      computed: expensiveFunction(item),
+    })),
   [data]
 );
 ```
 
 #### useCallback for Event Handlers
+
 ```typescript
 // ❌ BAD - New function reference on every render
 const handlePress = (id: string) => {
@@ -76,9 +81,12 @@ const handlePress = (id: string) => {
 };
 
 // ✅ GOOD - Stable function reference
-const handlePress = useCallback((id: string) => {
-  dispatch({ type: 'SELECT', id });
-}, [dispatch]);
+const handlePress = useCallback(
+  (id: string) => {
+    dispatch({ type: 'SELECT', id });
+  },
+  [dispatch]
+);
 ```
 
 ### 3. State Management Optimization
@@ -90,8 +98,8 @@ Using Zustand with selectors to prevent unnecessary re-renders:
 const store = useAppStore();
 
 // ✅ GOOD - Component only re-renders when specific data changes
-const items = useAppStore(state => state.items);
-const updateItem = useAppStore(state => state.updateItem);
+const items = useAppStore((state) => state.items);
+const updateItem = useAppStore((state) => state.updateItem);
 ```
 
 ## Animation Architecture
@@ -99,11 +107,13 @@ const updateItem = useAppStore(state => state.updateItem);
 ### Animation Strategy
 
 #### ✅ **Moti**: For simple, declarative animations
+
 ```typescript
 <MotiView animate={{ opacity: 1 }} />
 ```
 
 #### ✅ **Reanimated**: For complex, performance-critical animations
+
 ```typescript
 // Worklets, shared values, gesture handling
 const animatedStyle = useAnimatedStyle(() => ({
@@ -120,14 +130,16 @@ All animations run on the UI thread for 60 FPS:
 const animatedStyle = useAnimatedStyle(() => ({
   opacity: withTiming(visible.value ? 1 : 0, {
     duration: 200,
-    easing: Easing.out(Easing.ease)
+    easing: Easing.out(Easing.ease),
   }),
-  transform: [{
-    scale: withSpring(pressed.value ? 0.95 : 1, {
-      damping: 15,
-      stiffness: 300
-    })
-  }]
+  transform: [
+    {
+      scale: withSpring(pressed.value ? 0.95 : 1, {
+        damping: 15,
+        stiffness: 300,
+      }),
+    },
+  ],
 }));
 ```
 
@@ -142,15 +154,15 @@ export const animationConfig = {
     animationDuration: 300,
     enableComplexAnimations: true,
     enableShadows: true,
-    enableBlur: true
+    enableBlur: true,
   },
   android: {
     maxParticles: 10,
     animationDuration: 200,
     enableComplexAnimations: false,
     enableShadows: false,
-    enableBlur: false
-  }
+    enableBlur: false,
+  },
 };
 ```
 
@@ -172,12 +184,12 @@ const MyComponent = () => {
   const handlePress = () => {
     translateX.value = withTiming(100); // ❌ Render warning
   };
-  
+
   const handleLayout = (event) => {
     width.value = event.nativeEvent.layout.width; // ❌ Render warning
   };
-  
-  setExpanded(prev => {
+
+  setExpanded((prev) => {
     height.value = prev ? 100 : 200; // ❌ Render warning
     return !prev;
   });
@@ -191,17 +203,20 @@ const MyComponent = () => {
       translateX.value = withTiming(100);
     })();
   }, [translateX]);
-  
-  const handleLayout = useCallback((event) => {
-    const { width } = event.nativeEvent.layout;
-    runOnUI(() => {
-      'worklet';
-      containerWidth.value = width;
-    })();
-  }, [containerWidth]);
-  
+
+  const handleLayout = useCallback(
+    (event) => {
+      const { width } = event.nativeEvent.layout;
+      runOnUI(() => {
+        'worklet';
+        containerWidth.value = width;
+      })();
+    },
+    [containerWidth]
+  );
+
   const toggleExpanded = useCallback(() => {
-    setExpanded(prev => {
+    setExpanded((prev) => {
       const next = !prev;
       runOnUI(() => {
         'worklet';
@@ -214,6 +229,7 @@ const MyComponent = () => {
 ```
 
 **Safe `.value` access locations:**
+
 - ✅ Inside `useAnimatedStyle()` worklets
 - ✅ Inside `runOnUI()` blocks
 - ✅ Inside gesture handlers
@@ -231,7 +247,7 @@ const TabOneScreen = () => {
   const showStats = useDelayedMount(50);      // After 50ms
   const showTeam = useDelayedMount(150);      // After 150ms
   const showActivities = useDelayedMount(250); // After 250ms
-  
+
   return (
     <View>
       {showHeader && <Header />}
@@ -280,18 +296,18 @@ export const commonStyles = {
 const originalStyle = tw.style.bind(tw);
 tw.style = (...args: any[]) => {
   const key = JSON.stringify(args);
-  
+
   if (styleCache.has(key)) {
     return styleCache.get(key);
   }
-  
+
   const style = originalStyle(...args);
-  
+
   if (styleCache.size >= CACHE_SIZE_LIMIT) {
     const firstKey = styleCache.keys().next().value;
     styleCache.delete(firstKey);
   }
-  
+
   styleCache.set(key, style);
   return style;
 };
@@ -318,7 +334,7 @@ const styles = useMemo(() => ({
 
 ```typescript
 // LazyComponents.tsx
-export const LazyActivityList = lazy(() => 
+export const LazyActivityList = lazy(() =>
   import(/* webpackChunkName: "activity-list" */ './ActivityList')
 );
 
@@ -333,6 +349,7 @@ export const LazyActivityList = lazy(() =>
 ### 2. Route-Based Code Splitting
 
 Expo Router automatically splits code by route:
+
 ```
 app/
   (tabs)/
@@ -353,8 +370,8 @@ config.transformer.minifierConfig = {
     keep_fnames: false,
   },
   compress: {
-    drop_console: true,    // Remove console.logs
-    drop_debugger: true,   // Remove debugger statements
+    drop_console: true, // Remove console.logs
+    drop_debugger: true, // Remove debugger statements
     pure_funcs: ['console.log', 'console.warn'],
   },
 };
@@ -374,7 +391,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 - Images: Use WebP format, implement lazy loading
 - Fonts: Load only used character sets
-- Dependencies: Regular audit with `npm audit`
+- Dependencies: Regular audit with `yarn audit`
 
 ## Performance Monitoring
 
@@ -393,15 +410,15 @@ Wraps components to measure render performance:
 ```typescript
 const MyComponent = () => {
   const { onMount, onLayout, measure } = usePerformanceMonitor('MyComponent');
-  
+
   useEffect(() => {
     onMount(); // Measure mount time
-    
+
     return measure('cleanup', () => {
       // Cleanup code
     });
   }, []);
-  
+
   return <View onLayout={onLayout}>...</View>;
 };
 ```
@@ -419,6 +436,7 @@ const fetchData = measure('fetchData', async () => {
 ## Best Practices Checklist
 
 ### Component Development
+
 - [ ] Wrapped with `React.memo`
 - [ ] Props interface defined with TypeScript
 - [ ] Display name set for debugging
@@ -426,6 +444,7 @@ const fetchData = measure('fetchData', async () => {
 - [ ] Loading states handled
 
 ### Performance
+
 - [ ] Styles pre-computed with `useMemo`
 - [ ] Callbacks memoized with `useCallback`
 - [ ] Heavy computations memoized
@@ -433,6 +452,7 @@ const fetchData = measure('fetchData', async () => {
 - [ ] Images lazy loaded and cached
 
 ### Animations
+
 - [ ] Using Reanimated 3 worklets
 - [ ] Duration under 300ms
 - [ ] Cleanup on unmount
@@ -442,6 +462,7 @@ const fetchData = measure('fetchData', async () => {
 - [ ] No `.value` access during component render
 
 ### State Management
+
 - [ ] Using selectors to minimize re-renders
 - [ ] State normalized (no nested objects)
 - [ ] Async operations handled properly
@@ -452,12 +473,14 @@ const fetchData = measure('fetchData', async () => {
 ### Issue: High Re-render Count
 
 **Diagnosis:**
+
 ```typescript
 // Add to component
 console.log(`${ComponentName} rendered`);
 ```
 
 **Solutions:**
+
 1. Check memo dependencies
 2. Use React DevTools Profiler
 3. Implement custom memo comparison
@@ -466,10 +489,12 @@ console.log(`${ComponentName} rendered`);
 ### Issue: Animation Jank
 
 **Diagnosis:**
+
 - Enable Performance Monitor overlay
 - Check frame rate in developer menu
 
 **Solutions:**
+
 1. Reduce animation complexity
 2. Use `runOnUI` for calculations
 3. Disable on low-end devices
@@ -478,12 +503,14 @@ console.log(`${ComponentName} rendered`);
 ### Issue: Slow Initial Load
 
 **Diagnosis:**
+
 ```bash
 # Analyze bundle
-npx react-native-bundle-visualizer
+yarn react-native-bundle-visualizer
 ```
 
 **Solutions:**
+
 1. Implement more aggressive code splitting
 2. Reduce initial component tree
 3. Defer non-critical imports
@@ -492,10 +519,12 @@ npx react-native-bundle-visualizer
 ### Issue: Memory Leaks
 
 **Diagnosis:**
+
 - Monitor with Flipper
 - Check for increasing memory in profiler
 
 **Solutions:**
+
 1. Cancel all timers/intervals
 2. Remove event listeners
 3. Cancel animation on unmount
@@ -504,7 +533,9 @@ npx react-native-bundle-visualizer
 ## Advanced Optimization Techniques
 
 ### 1. Virtual List Implementation
+
 For lists with 100+ items:
+
 ```typescript
 <FlashList
   data={items}
@@ -515,6 +546,7 @@ For lists with 100+ items:
 ```
 
 ### 2. Image Optimization
+
 ```typescript
 import { Image } from 'expo-image';
 
@@ -528,6 +560,7 @@ import { Image } from 'expo-image';
 ```
 
 ### 3. Background Task Optimization
+
 ```typescript
 // Defer heavy operations
 InteractionManager.runAfterInteractions(() => {
@@ -535,9 +568,12 @@ InteractionManager.runAfterInteractions(() => {
 });
 
 // Or use requestIdleCallback
-requestIdleCallback(() => {
-  // Non-critical operation
-}, { timeout: 2000 });
+requestIdleCallback(
+  () => {
+    // Non-critical operation
+  },
+  { timeout: 2000 }
+);
 ```
 
 ## Continuous Monitoring

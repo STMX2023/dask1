@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
-import { View, Text, Pressable, Alert, Platform } from 'react-native';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { View, Text, Pressable, Alert, Platform, StyleSheet } from 'react-native';
+import type { CameraType } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,8 +11,19 @@ import tw from '../utils/tw';
 
 // Pre-warm camera on module load for faster startup
 if (Platform.OS === 'ios') {
-  CameraView.isAvailableAsync();
+  CameraView.isAvailableAsync().catch(() => {
+    // Ignore errors from pre-warming camera
+  });
 }
+
+const styles = StyleSheet.create({
+  cameraIcon: {
+    marginBottom: 16,
+  },
+  topControlsContainer: {
+    paddingTop: 60,
+  },
+});
 
 export const CameraScreen = () => {
   const isDark = useIsDarkMode();
@@ -28,7 +40,7 @@ export const CameraScreen = () => {
     // Immediate UI feedback
     setIsCameraVisible(false);
     setIsReady(false);
-    
+
     // Navigate immediately for better responsiveness
     router.back();
   }, []);
@@ -37,18 +49,23 @@ export const CameraScreen = () => {
     setIsReady(true);
   }, []);
 
-  const handleCameraError = useCallback((error: unknown) => {
-    console.error('Camera mount error:', error);
-    setIsCameraVisible(false);
-    Alert.alert(
-      'Camera Error', 
-      'Failed to initialize camera. Please try again.',
-      [{ text: 'OK', onPress: handleClose }]
-    );
-  }, [handleClose]);
+  const handleRequestPermission = useCallback(() => {
+    requestPermission().catch(console.error);
+  }, [requestPermission]);
+
+  const handleCameraError = useCallback(
+    (error: unknown) => {
+      console.error('Camera mount error:', error);
+      setIsCameraVisible(false);
+      Alert.alert('Camera Error', 'Failed to initialize camera. Please try again.', [
+        { text: 'OK', onPress: handleClose },
+      ]);
+    },
+    [handleClose],
+  );
 
   const toggleCameraFacing = useCallback(() => {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
+    setFacing((current) => (current === 'back' ? 'front' : 'back'));
   }, []);
 
   const takePicture = useCallback(async () => {
@@ -60,11 +77,6 @@ export const CameraScreen = () => {
     isTakingPhoto.current = true;
 
     try {
-      // Haptic feedback for immediate response (if available)
-      if (Platform.OS === 'ios') {
-        // Could add haptic feedback here with expo-haptics
-      }
-
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.5, // Even lower for maximum speed
         base64: false,
@@ -72,18 +84,25 @@ export const CameraScreen = () => {
         exif: false, // No EXIF data
         fastMode: true, // Use fastest capture mode if available
       });
-      
-      if (photo && photo.uri) {
-        Alert.alert(
-          'Photo Taken!',
-          `Photo saved successfully`,
-          [
-            { text: 'Take Another', style: 'default', onPress: () => { isTakingPhoto.current = false; } },
-            { text: 'Done', onPress: handleClose }
-          ]
-        );
+
+      // Check if photo is null or undefined
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (photo?.uri) {
+        Alert.alert('Photo Taken!', 'Photo saved successfully', [
+          {
+            text: 'Take Another',
+            style: 'default',
+            onPress: () => {
+              isTakingPhoto.current = false;
+            },
+          },
+          { text: 'Done', onPress: handleClose },
+        ]);
       } else {
+        // Photo capture failed silently
+        console.error('Photo capture returned null');
         isTakingPhoto.current = false;
+        Alert.alert('Camera Error', 'Failed to capture photo. Please try again.');
       }
     } catch (error) {
       console.error('Error taking picture:', error);
@@ -92,24 +111,33 @@ export const CameraScreen = () => {
     }
   }, [isReady, handleClose]);
 
+  const handleTakePicture = useCallback(() => {
+    takePicture().catch(console.error);
+  }, [takePicture]);
 
   // Memoize button styles
-  const buttonStyles = useMemo(() => ({
-    closeButton: tw`w-12 h-12 rounded-full bg-black/50 items-center justify-center`,
-    flipButton: tw`w-12 h-12 rounded-full bg-black/50 items-center justify-center`,
-    captureButton: tw.style('w-20 h-20 rounded-full border-4 border-white items-center justify-center', {
-      backgroundColor: isReady ? '#FFFFFF' : '#FFFFFF80'
+  const buttonStyles = useMemo(
+    () => ({
+      closeButton: tw`w-12 h-12 rounded-full bg-black/50 items-center justify-center`,
+      flipButton: tw`w-12 h-12 rounded-full bg-black/50 items-center justify-center`,
+      captureButton: tw.style(
+        'w-20 h-20 rounded-full border-4 border-white items-center justify-center',
+        {
+          backgroundColor: isReady ? '#FFFFFF' : '#FFFFFF80',
+        },
+      ),
+      captureButtonInner: tw.style('w-16 h-16 rounded-full', {
+        backgroundColor: isReady ? '#FFFFFF' : '#FFFFFF80',
+      }),
     }),
-    captureButtonInner: tw.style('w-16 h-16 rounded-full', {
-      backgroundColor: isReady ? '#FFFFFF' : '#FFFFFF80'
-    })
-  }), [isReady]);
+    [isReady],
+  );
 
   // Optimized camera mounting with crash prevention
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      
+
       // Minimal delay for crash prevention while keeping it fast
       const mountTimer = setTimeout(() => {
         if (mounted) {
@@ -124,46 +152,48 @@ export const CameraScreen = () => {
         setIsCameraVisible(false);
         setIsReady(false);
       };
-    }, [])
+    }, []),
   );
 
   // Handle permission states
   if (!permission) {
     // Camera permissions are still loading - show black screen to match camera
-    return (
-      <View style={tw`flex-1 bg-black`} />
-    );
+    return <View style={tw`flex-1 bg-black`} />;
   }
 
   if (!permission.granted) {
     // Camera permissions are not granted yet
     return (
-      <View style={tw.style('flex-1 justify-center items-center px-6', { backgroundColor: theme.background })}>
-        <FontAwesome6 name="camera" size={64} color={theme.textSecondary} style={tw`mb-4`} />
-        <Text style={tw.style('text-xl font-bold text-center mb-2', { color: theme.textPrimary })}>
+      <View
+        style={[tw`flex-1 justify-center items-center px-6`, { backgroundColor: theme.background }]}
+      >
+        <FontAwesome6
+          name="camera"
+          size={64}
+          color={theme.textSecondary}
+          style={styles.cameraIcon}
+        />
+        <Text style={[tw`text-xl font-bold text-center mb-2`, { color: theme.textPrimary }]}>
           Camera Access Required
         </Text>
-        <Text style={tw.style('text-base text-center mb-6', { color: theme.textSecondary })}>
-          We need access to your camera to take photos. This permission is required to use the camera feature.
+        <Text style={[tw`text-base text-center mb-6`, { color: theme.textSecondary }]}>
+          We need access to your camera to take photos. This permission is required to use the
+          camera feature.
         </Text>
         <Pressable
-          onPress={requestPermission}
-          style={tw.style('px-6 py-3 rounded-lg border', {
-            backgroundColor: theme.success,
-            borderColor: theme.success,
-          })}
+          onPress={handleRequestPermission}
+          style={[
+            tw`px-6 py-3 rounded-lg border`,
+            {
+              backgroundColor: theme.success,
+              borderColor: theme.success,
+            },
+          ]}
         >
-          <Text style={tw.style('text-base font-semibold', { color: '#FFFFFF' })}>
-            Grant Camera Permission
-          </Text>
+          <Text style={tw`text-base font-semibold text-white`}>Grant Camera Permission</Text>
         </Pressable>
-        <Pressable
-          onPress={() => router.back()}
-          style={tw.style('mt-4 px-6 py-3')}
-        >
-          <Text style={tw.style('text-base', { color: theme.textSecondary })}>
-            Go Back
-          </Text>
+        <Pressable onPress={handleClose} style={tw`mt-4 px-6 py-3`}>
+          <Text style={[tw`text-base`, { color: theme.textSecondary }]}>Go Back</Text>
         </Pressable>
       </View>
     );
@@ -173,7 +203,7 @@ export const CameraScreen = () => {
     <View style={tw`flex-1 bg-black`}>
       {/* Camera View - only render when visible */}
       {isCameraVisible && (
-        <CameraView 
+        <CameraView
           ref={cameraRef}
           style={tw`flex-1`}
           facing={facing}
@@ -183,23 +213,22 @@ export const CameraScreen = () => {
           autofocus="on"
         />
       )}
-      
+
       {/* Loading overlay when camera is mounting - no text, just subtle indicator */}
-      {!isReady && isCameraVisible && (
-        <View style={tw`absolute inset-0 bg-black`} />
-      )}
-      
+      {!isReady && isCameraVisible && <View style={tw`absolute inset-0 bg-black`} />}
+
       {/* Top controls overlay */}
-      <View 
+      <View
         pointerEvents="box-none"
-        style={[tw`absolute top-0 left-0 right-0 z-10 px-4`, { paddingTop: 60 }]}>
+        style={[tw`absolute top-0 left-0 right-0 z-10 px-4`, styles.topControlsContainer]}
+      >
         <View style={tw`flex-row justify-between items-center`}>
           {/* Empty space for balance */}
           <View style={tw`w-12 h-12`} />
-          
+
           {/* Title */}
           <Text style={tw`text-white text-lg font-semibold`}>Camera</Text>
-          
+
           {/* Flip camera button */}
           <Pressable
             onPress={toggleCameraFacing}
@@ -207,7 +236,11 @@ export const CameraScreen = () => {
             disabled={!isReady}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <FontAwesome6 name="camera-rotate" size={25} color={isReady ? "#FFFFFF" : "#FFFFFF80"} />
+            <FontAwesome6
+              name="camera-rotate"
+              size={25}
+              color={isReady ? '#FFFFFF' : '#FFFFFF80'}
+            />
           </Pressable>
         </View>
       </View>
@@ -217,17 +250,17 @@ export const CameraScreen = () => {
         <View style={tw`flex-row justify-between items-center`}>
           {/* Empty space for balance */}
           <View style={tw`w-12`} />
-          
+
           {/* Capture button in center */}
           <Pressable
-            onPress={takePicture}
+            onPress={handleTakePicture}
             disabled={!isReady || isTakingPhoto.current}
             style={buttonStyles.captureButton}
             hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           >
             <View style={buttonStyles.captureButtonInner} />
           </Pressable>
-          
+
           {/* Close button on right */}
           <Pressable
             onPress={handleClose}

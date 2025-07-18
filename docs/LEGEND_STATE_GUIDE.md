@@ -12,7 +12,7 @@ Legend State's architecture is built upon several core principles that collectiv
 
 ### Observables: The Reactive Data Unit
 
-At its foundation, Legend State operates on the concept of **Observables**. These are deep reactive objects designed to automatically notify listeners whenever any part of their encapsulated data undergoes a change. This reactive nature is central to the library's efficiency. Observables offer substantial flexibility in structuring complex data, as they can be composed of simple primitives or deeply nested objects. This design eliminates the need for traditional state management boilerplate such as contexts, actions, reducers, dispatchers, sagas, thunks, or epics. 
+At its foundation, Legend State operates on the concept of **Observables**. These are deep reactive objects designed to automatically notify listeners whenever any part of their encapsulated data undergoes a change. This reactive nature is central to the library's efficiency. Observables offer substantial flexibility in structuring complex data, as they can be composed of simple primitives or deeply nested objects. This design eliminates the need for traditional state management boilerplate such as contexts, actions, reducers, dispatchers, sagas, thunks, or epics.
 
 A notable optimization introduced in Legend-State 2.0 and maintained in subsequent versions is the on-demand creation of observable nodes. This feature eliminates performance overheads typically associated with initializing or setting observables that contain very large or recursive objects, including complex data structures like DOM elements.
 
@@ -39,12 +39,12 @@ The core design of Legend State, with its observable-based fine-grained reactivi
 
 ## Table 1: Legend State Core API Summary
 
-| Concept                | Function/Method         | Description                                                                                 |
-|------------------------|------------------------|---------------------------------------------------------------------------------------------|
-| Creating Observables   | `observable()`         | Creates a deep reactive object that notifies listeners of changes. Can be primitives or nested objects. |
-| Reading State          | `.get()`               | Retrieves the raw value from an observable. When called in an "observing context," it automatically tracks dependencies for efficient re-renders. |
-| Updating State         | `.set()`               | Sets the value of an observable. Also triggers synchronization with a remote backend if configured for persistence. |
-| Computed Observables   | `observable(() =>...)` | Creates a derived observable whose value is computed from other observables, updating automatically when dependencies change. |
+| Concept              | Function/Method        | Description                                                                                                                                       |
+| -------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Creating Observables | `observable()`         | Creates a deep reactive object that notifies listeners of changes. Can be primitives or nested objects.                                           |
+| Reading State        | `.get()`               | Retrieves the raw value from an observable. When called in an "observing context," it automatically tracks dependencies for efficient re-renders. |
+| Updating State       | `.set()`               | Sets the value of an observable. Also triggers synchronization with a remote backend if configured for persistence.                               |
+| Computed Observables | `observable(() =>...)` | Creates a derived observable whose value is computed from other observables, updating automatically when dependencies change.                     |
 
 This table provides a concise, at-a-glance reference for the fundamental building blocks of Legend State. For an AI model, this structured overview is crucial for quick comprehension and direct application of the core API. It immediately clarifies the primary tools and their basic usage, reinforcing the "non-verbose must know" requirement.
 
@@ -87,17 +87,17 @@ Legend State offers a comprehensive suite of tools for React integration that ac
 
 ## Table 2: React Integration Methods
 
-| Method/Component   | Purpose                                         | Key Benefit                                                                 |
-|--------------------|-------------------------------------------------|-----------------------------------------------------------------------------|
-| use$ Hook          | Read state, compute values, track dependencies. | Efficiently re-renders component only when computed value changes; recommended in v3. |
-| observer Wrapper   | Wrap components to automatically track all accessed observables. | Near-zero performance cost, highly efficient tracking, safer than enableReactTracking. |
-| useObservable Hook | Create local, component-scoped observable state.| Manages state tied to component lifecycle, holds multiple values in local state. |
-| Memo Component     | Render self-updating mini-elements.              | Re-renders only when its own observables change, not parent; most basic fine-grained reactivity. |
-| Computed Component | Isolate children's reactivity from parent re-renders. | Children's changes don't affect parent, but parent's local state still re-renders children. |
-| Show Component     | Conditionally render components.                 | Prevents parent re-renders when the condition changes.                       |
-| Switch Component   | Render different children based on observable value. | Streamlined conditional rendering based on state.                            |
-| For Component      | Optimize rendering of arrays/lists.              | Re-renders only changed elements, not the entire array.                      |
-| Reactive Props     | Enable two-way binding and reactive updates on component props. | Component updates itself when a bound Selector changes; simplifies input binding. |
+| Method/Component   | Purpose                                                          | Key Benefit                                                                                      |
+| ------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| use$ Hook          | Read state, compute values, track dependencies.                  | Efficiently re-renders component only when computed value changes; recommended in v3.            |
+| observer Wrapper   | Wrap components to automatically track all accessed observables. | Near-zero performance cost, highly efficient tracking, safer than enableReactTracking.           |
+| useObservable Hook | Create local, component-scoped observable state.                 | Manages state tied to component lifecycle, holds multiple values in local state.                 |
+| Memo Component     | Render self-updating mini-elements.                              | Re-renders only when its own observables change, not parent; most basic fine-grained reactivity. |
+| Computed Component | Isolate children's reactivity from parent re-renders.            | Children's changes don't affect parent, but parent's local state still re-renders children.      |
+| Show Component     | Conditionally render components.                                 | Prevents parent re-renders when the condition changes.                                           |
+| Switch Component   | Render different children based on observable value.             | Streamlined conditional rendering based on state.                                                |
+| For Component      | Optimize rendering of arrays/lists.                              | Re-renders only changed elements, not the entire array.                                          |
+| Reactive Props     | Enable two-way binding and reactive updates on component props.  | Component updates itself when a bound Selector changes; simplifies input binding.                |
 
 This table centralizes the primary methods for integrating Legend State with React. It helps AI models quickly grasp the purpose and benefit of each tool, making it easier to select the appropriate one for a given task. This is essential for practical "how-to" guidance and reinforces the non-verbose nature of the document.
 
@@ -133,13 +133,13 @@ Legend State's comprehensive feature set, particularly its built-in persistence 
 
 ## Table 3: Legend State Use Case Matrix
 
-| Use Case                | Description                                                      | Legend State Feature(s) Applied                                                      |
-|-------------------------|------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| App State (Local/Global)| Managing data specific to components or accessible across the entire application. | `observable()`, `.get()`, `.set()`, `useObservable` (for local state).               |
-| Remote State Synchronization | Connecting application state with any backend for data consistency. | Powerful sync system, optimistic updates, minimal diffs, plugins (Keel, Supabase, TanStack Query, fetch). |
-| Robust Data Persistence | Saving application data locally for offline access and continuity. | Built-in persistence plugins (LocalStorage, IndexedDB), client-side encryption/compression support. |
-| High-Performance UI     | Developing applications requiring extreme speed and responsiveness. | Fine-grained reactivity, Memo, For, optimized array handling.                        |
-| Local-First Apps        | Building applications that function seamlessly offline and synchronize later. | Optimistic local updates, retry mechanisms, offline data caching.                     |
+| Use Case                     | Description                                                                       | Legend State Feature(s) Applied                                                                           |
+| ---------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| App State (Local/Global)     | Managing data specific to components or accessible across the entire application. | `observable()`, `.get()`, `.set()`, `useObservable` (for local state).                                    |
+| Remote State Synchronization | Connecting application state with any backend for data consistency.               | Powerful sync system, optimistic updates, minimal diffs, plugins (Keel, Supabase, TanStack Query, fetch). |
+| Robust Data Persistence      | Saving application data locally for offline access and continuity.                | Built-in persistence plugins (LocalStorage, IndexedDB), client-side encryption/compression support.       |
+| High-Performance UI          | Developing applications requiring extreme speed and responsiveness.               | Fine-grained reactivity, Memo, For, optimized array handling.                                             |
+| Local-First Apps             | Building applications that function seamlessly offline and synchronize later.     | Optimistic local updates, retry mechanisms, offline data caching.                                         |
 
 This matrix directly addresses the "where" part of the user's query by mapping Legend State's features to practical application scenarios. For an AI model, this provides a clear decision framework for when and why to choose Legend State, demonstrating its strategic value beyond just technical implementation details.
 
@@ -166,4 +166,3 @@ Legend State asserts its position as the "fastest React state library," claiming
 Legend State offers a modern and compelling approach to state management in React and React Native applications. Its core strengths lie in its simplicity, fine-grained reactivity, and powerful built-in persistence and synchronization capabilities. The library is particularly well-suited for performance-critical applications and those designed with local-first architectures.
 
 Legend State represents a modern approach to state management that aligns with the evolving performance demands of React Native's New Architecture. It offers a streamlined development paradigm for those willing to embrace a less mature but highly optimized solution. Legend State's fine-grained reactivity and no-boilerplate approach directly address common performance and complexity challenges in React. Its robust synchronization and persistence features natively support the requirements of modern applications, including offline capabilities. React Native's New Architecture, with its focus on eliminating bridge overhead and enhancing efficiency through components like JSI, TurboModules, and Fabric, creates a powerful synergy with Legend State. By optimizing the JavaScript side of the application, Legend State complements the native-side performance gains of the New Architecture. For developers building new React Native applications with the New Architecture, Legend State offers a state management solution that is inherently aligned with the architecture's performance goals and simplifies development, provided they are aware of its current maturity level.
-

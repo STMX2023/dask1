@@ -5,15 +5,19 @@ import { withSpring, withTiming } from 'react-native-reanimated';
 const getDevicePerformanceLevel = () => {
   const { width, height } = Dimensions.get('window');
   const pixelCount = width * height;
-  
+
   // Simple heuristic based on screen resolution and platform
   if (Platform.OS === 'ios') {
     return pixelCount > 2000000 ? 'high' : 'medium';
   }
-  
+
   // Android performance detection
-  if (pixelCount > 2000000) return 'high';
-  if (pixelCount > 1000000) return 'medium';
+  if (pixelCount > 2000000) {
+    return 'high';
+  }
+  if (pixelCount > 1000000) {
+    return 'medium';
+  }
   return 'low';
 };
 
@@ -59,7 +63,7 @@ export const AnimationSettings = {
 export const currentSettings = AnimationSettings[PERFORMANCE_LEVEL];
 
 // Optimized spring animation
-export const optimizedSpring = (value: number, config?: any) => {
+export const optimizedSpring = (value: number, config?: Record<string, unknown>) => {
   'worklet';
   return withSpring(value, {
     damping: currentSettings.springDamping,
@@ -73,12 +77,11 @@ export const optimizedSpring = (value: number, config?: any) => {
 };
 
 // Optimized timing animation
-export const optimizedTiming = (value: number, config?: any) => {
+export const optimizedTiming = (value: number, config?: Record<string, unknown>) => {
   'worklet';
   return withTiming(value, {
     duration: 300,
     easing: (t: number) => {
-      'worklet';
       // Fast ease-out curve
       return 1 - Math.pow(1 - t, 3);
     },
@@ -89,7 +92,7 @@ export const optimizedTiming = (value: number, config?: any) => {
 // Frame rate limiter for animations
 export class FrameRateLimiter {
   private lastFrameTime = 0;
-  private targetFrameTime: number;
+  private readonly targetFrameTime: number;
 
   constructor(targetFPS: number = currentSettings.frameRate) {
     this.targetFrameTime = 1000 / targetFPS;
@@ -107,9 +110,9 @@ export class FrameRateLimiter {
 
 // Animation queue to prevent too many concurrent animations
 export class AnimationQueue {
-  private queue: Array<() => void> = [];
+  private readonly queue: (() => void)[] = [];
   private running = 0;
-  private maxConcurrent = currentSettings.maxConcurrentAnimations;
+  private readonly maxConcurrent = currentSettings.maxConcurrentAnimations;
 
   add(animation: () => void) {
     this.queue.push(animation);
@@ -134,20 +137,18 @@ export class AnimationQueue {
 
 // Batch DOM updates
 export const batchedUpdates = (() => {
-  let pending: Array<() => void> = [];
+  let pending: (() => void)[] = [];
   let rafId: number | null = null;
 
   const flush = () => {
     const updates = pending;
     pending = [];
     rafId = null;
-    updates.forEach(update => update());
+    updates.forEach((update) => { update(); });
   };
 
   return (update: () => void) => {
     pending.push(update);
-    if (!rafId) {
-      rafId = requestAnimationFrame(flush);
-    }
+    rafId ??= requestAnimationFrame(flush);
   };
 })();

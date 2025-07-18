@@ -5,6 +5,7 @@ This guide explains how to implement cloud sync using Supabase with op-sqlite fo
 ## Overview
 
 Our sync architecture provides:
+
 - Offline-first functionality with op-sqlite
 - Real-time sync with Supabase
 - Conflict resolution (Last Write Wins)
@@ -33,7 +34,7 @@ Our sync architecture provides:
 ## Step 1: Install Dependencies
 
 ```bash
-npm install @supabase/supabase-js
+yarn add @supabase/supabase-js
 ```
 
 ## Step 2: Supabase Schema
@@ -88,6 +89,7 @@ CREATE POLICY "Users can update own activities" ON activities
 ## Step 3: Environment Configuration
 
 Create `.env.local`:
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=your-project-url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
@@ -98,6 +100,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 The sync service is located at `services/database/DatabaseSync.ts`. Key features:
 
 ### Initialize Database
+
 ```typescript
 const dbSync = new DatabaseSync(
   process.env.EXPO_PUBLIC_SUPABASE_URL!,
@@ -108,24 +111,28 @@ const dbSync = new DatabaseSync(
 ### Sync Operations
 
 1. **Track Local Changes**
+
 ```typescript
 // When creating an activity locally
 await dbSync.trackChange('activities', 'insert', activityId, activityData);
 ```
 
 2. **Sync to Cloud**
+
 ```typescript
 // Sync all pending changes
 await dbSync.syncToCloud();
 ```
 
 3. **Pull from Cloud**
+
 ```typescript
 // Get latest changes from Supabase
 await dbSync.syncFromCloud();
 ```
 
 4. **Real-time Updates**
+
 ```typescript
 // Subscribe to changes
 const subscription = dbSync.subscribeToChanges('activities', (payload) => {
@@ -143,28 +150,28 @@ import { dbSync } from '../services/database';
 
 const useAppStore = create((set, get) => ({
   // ... existing state ...
-  
+
   addActivity: async (activity) => {
     // Add to local database
     await dbSync.addActivity(activity);
-    
+
     // Update store
-    set((state) => ({ 
-      activities: [...state.activities, activity] 
+    set((state) => ({
+      activities: [...state.activities, activity],
     }));
-    
+
     // Queue for sync
     await dbSync.trackChange('activities', 'insert', activity.id, activity);
   },
-  
+
   syncActivities: async () => {
     await dbSync.syncToCloud();
     await dbSync.syncFromCloud();
-    
+
     // Refresh local state from database
     const activities = await dbSync.getAllActivities();
     set({ activities });
-  }
+  },
 }));
 ```
 
@@ -176,21 +183,21 @@ Create a sync manager that runs periodically:
 // hooks/useAutoSync.ts
 export const useAutoSync = () => {
   const { syncActivities } = useAppStore();
-  
+
   useEffect(() => {
     // Initial sync
     syncActivities();
-    
+
     // Sync every 30 seconds
     const interval = setInterval(syncActivities, 30000);
-    
+
     // Sync on app foreground
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         syncActivities();
       }
     });
-    
+
     return () => {
       clearInterval(interval);
       subscription.remove();
@@ -215,6 +222,7 @@ async resolveConflict(local: any, remote: any) {
 ```
 
 For more complex scenarios, implement:
+
 - Version vectors
 - Three-way merge
 - User-prompted resolution
@@ -271,6 +279,7 @@ async syncWithRetry(maxRetries = 3) {
 ## Monitoring
 
 Track sync metrics:
+
 - Sync success/failure rate
 - Average sync duration
 - Conflict frequency
@@ -279,17 +288,20 @@ Track sync metrics:
 ## Troubleshooting
 
 ### Sync Not Working
+
 1. Check network connectivity
 2. Verify Supabase credentials
 3. Check sync queue for errors
 4. Review Supabase logs
 
 ### Data Inconsistencies
+
 1. Check conflict resolution logic
 2. Verify timestamp accuracy
 3. Review sync order
 
 ### Performance Issues
+
 1. Reduce sync frequency
 2. Implement incremental sync
 3. Optimize database queries

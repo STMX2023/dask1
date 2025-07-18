@@ -39,7 +39,7 @@ export const Timer = memo<TimerProps>(({ isCompact = false }) => {
     if (currentTimer.isRunning && currentTimer.startTime) {
       // Set initial time immediately
       setDisplaySeconds(calculateElapsedTime());
-      
+
       interval = setInterval(() => {
         setDisplaySeconds(calculateElapsedTime());
       }, 1000);
@@ -57,7 +57,7 @@ export const Timer = memo<TimerProps>(({ isCompact = false }) => {
 
   const textSize = isCompact ? 'text-2xl' : 'text-4xl';
   const fontFamily = isCompact ? 'font-bold' : 'font-mono font-bold';
-  
+
   return (
     <View style={tw`items-center justify-center`}>
       <Text

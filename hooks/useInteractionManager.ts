@@ -9,7 +9,7 @@ export const useInteractionManager = () => {
       setInteractionsComplete(true);
     });
 
-    return () => handle.cancel();
+    return () => { handle.cancel(); };
   }, []);
 
   return interactionsComplete;

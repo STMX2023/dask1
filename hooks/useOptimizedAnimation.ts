@@ -1,8 +1,8 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { 
-  useSharedValue, 
-  withSpring, 
+import {
+  useSharedValue,
+  withSpring,
   withTiming,
   cancelAnimation,
   runOnJS,
@@ -20,7 +20,7 @@ export const useOptimizedAnimation = (
   from: number,
   to: number,
   duration: number,
-  options: UseOptimizedAnimationOptions = {}
+  options: UseOptimizedAnimationOptions = {},
 ) => {
   const { autoStart = true, loop = false, onComplete } = options;
   const value = useSharedValue(from);
@@ -36,20 +36,22 @@ export const useOptimizedAnimation = (
       if (!frameRateLimiter.shouldRender()) {
         return;
       }
-      
+
       // Check if animation completed
       if (!loop && Math.abs(current - to) < 0.01 && onComplete) {
         runOnJS(onComplete)();
       }
-    }
+    },
   );
 
   const start = useCallback(() => {
     'worklet';
-    if (isRunning.current && !loop) return;
-    
+    if (isRunning.current && !loop) {
+      return;
+    }
+
     isRunning.current = true;
-    
+
     if (Platform.OS === 'ios' || currentSettings.frameRate >= 60) {
       // Use spring for smooth iOS animations
       value.value = withSpring(to, {
@@ -61,13 +63,12 @@ export const useOptimizedAnimation = (
       value.value = withTiming(to, {
         duration,
         easing: (t: number) => {
-          'worklet';
           // Ease-out quad
           return t * (2 - t);
         },
       });
     }
-    
+
     if (loop) {
       value.value = withTiming(to, { duration }, () => {
         'worklet';
@@ -95,7 +96,7 @@ export const useOptimizedAnimation = (
     if (autoStart) {
       start();
     }
-    
+
     return () => {
       stop();
     };

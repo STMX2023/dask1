@@ -1,16 +1,36 @@
 import { createClient } from '@supabase/supabase-js';
 import { open } from '@op-engineering/op-sqlite';
 
+interface SyncQueueRow {
+  id: string | number;
+  table_name: string;
+  operation: string;
+  record_id: string;
+  data: string;
+  created_at: number;
+}
+
+interface ActivityRow {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  created_at: string | number;
+  updated_at: string | number;
+}
+
 // Example sync layer architecture
 export class DatabaseSync {
-  private db;
-  private supabase;
+  private readonly db;
+  private readonly supabase;
   private syncInProgress = false;
 
   constructor(supabaseUrl: string, supabaseKey: string) {
     this.db = open({ name: 'dask.db' });
     this.supabase = createClient(supabaseUrl, supabaseKey);
-    this.initializeTables();
+    this.initializeTables().catch((error: unknown) => {
+      console.error('Failed to initialize database tables:', error);
+    });
   }
 
   private async initializeTables() {
@@ -39,38 +59,47 @@ export class DatabaseSync {
   }
 
   // Track local changes
-  async trackChange(table: string, operation: string, recordId: string, data: any) {
+  async trackChange(table: string, operation: string, recordId: string, data: unknown) {
     await this.db.execute(
       'INSERT INTO sync_queue (table_name, operation, record_id, data, created_at) VALUES (?, ?, ?, ?, ?)',
-      [table, operation, recordId, JSON.stringify(data), Date.now()]
+      [table, operation, recordId, JSON.stringify(data), Date.now()],
     );
   }
 
   // Sync to Supabase
   async syncToCloud() {
-    if (this.syncInProgress) return;
+    if (this.syncInProgress) {
+      return;
+    }
     this.syncInProgress = true;
 
     try {
       const changes = await this.db.execute('SELECT * FROM sync_queue ORDER BY created_at');
-      
-      for (const change of changes.rows) {
-        const data = JSON.parse(change.data as string);
-        
+
+      for (const changeRow of changes.rows) {
+        const change = changeRow as unknown as SyncQueueRow;
+        const data = JSON.parse(change.data) as Record<string, unknown>;
+
         switch (change.operation) {
           case 'insert':
-            await this.supabase.from(change.table_name as string).insert(data);
+            await this.supabase.from(change.table_name).insert(data);
             break;
           case 'update':
-            await this.supabase.from(change.table_name as string).update(data).eq('id', change.record_id);
+            await this.supabase
+              .from(change.table_name)
+              .update(data)
+              .eq('id', change.record_id);
             break;
           case 'delete':
-            await this.supabase.from(change.table_name as string).delete().eq('id', change.record_id);
+            await this.supabase
+              .from(change.table_name)
+              .delete()
+              .eq('id', change.record_id);
             break;
         }
-        
+
         // Remove from queue after successful sync
-        await this.db.execute('DELETE FROM sync_queue WHERE id = ?', [change.id]);
+        await this.db.execute('DELETE FROM sync_queue WHERE id = ?', [String(change.id)]);
       }
     } finally {
       this.syncInProgress = false;
@@ -80,52 +109,61 @@ export class DatabaseSync {
   // Pull from Supabase
   async syncFromCloud() {
     const lastSync = await this.getLastSyncTime();
-    
+
     const { data: activities } = await this.supabase
       .from('activities')
       .select('*')
       .gt('updated_at', lastSync);
-    
-    for (const activity of activities || []) {
+
+    for (const activityData of activities ?? []) {
+      const activity = activityData as ActivityRow;
       await this.db.execute(
         `INSERT OR REPLACE INTO activities 
          (id, title, description, completed, created_at, updated_at, sync_status) 
          VALUES (?, ?, ?, ?, ?, ?, 'synced')`,
-        [activity.id, activity.title, activity.description, 
-         activity.completed, activity.created_at, activity.updated_at]
+        [
+          activity.id,
+          activity.title,
+          activity.description,
+          activity.completed,
+          activity.created_at,
+          activity.updated_at,
+        ],
       );
     }
-    
+
     await this.setLastSyncTime(Date.now());
   }
 
   // Real-time subscription
-  subscribeToChanges(table: string, callback: (payload: any) => void) {
+  subscribeToChanges(table: string, callback: (payload: unknown) => void) {
     return this.supabase
       .channel(`${table}_changes`)
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table },
-        callback
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table }, callback)
       .subscribe();
   }
 
   // Conflict resolution (Last Write Wins)
-  async resolveConflict(local: any, remote: any) {
+  resolveConflict(local: { updated_at: string }, remote: { updated_at: string }) {
     return local.updated_at > remote.updated_at ? local : remote;
   }
 
   // Helper methods
   private async getLastSyncTime(): Promise<string> {
-    const result = await this.db.execute('SELECT value FROM sync_metadata WHERE key = ?', ['last_sync_time']);
-    return result.rows.length > 0 ? (result.rows[0].value as string) : '1970-01-01T00:00:00Z';
+    const result = await this.db.execute('SELECT value FROM sync_metadata WHERE key = ?', [
+      'last_sync_time',
+    ]);
+    if (result.rows.length > 0 && result.rows[0]) {
+      return result.rows[0]['value'] as string;
+    }
+    return '1970-01-01T00:00:00Z';
   }
 
   private async setLastSyncTime(timestamp: number): Promise<void> {
     const isoTime = new Date(timestamp).toISOString();
-    await this.db.execute(
-      'INSERT OR REPLACE INTO sync_metadata (key, value) VALUES (?, ?)',
-      ['last_sync_time', isoTime]
-    );
+    await this.db.execute('INSERT OR REPLACE INTO sync_metadata (key, value) VALUES (?, ?)', [
+      'last_sync_time',
+      isoTime,
+    ]);
   }
 }

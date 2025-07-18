@@ -7,9 +7,9 @@ interface LoadingFallbackProps {
   color?: string;
 }
 
-export const LoadingFallback: React.FC<LoadingFallbackProps> = ({ 
-  height = 200, 
-  color = '#3B82F6' 
+export const LoadingFallback: React.FC<LoadingFallbackProps> = ({
+  height = 200,
+  color = '#3B82F6',
 }) => {
   return (
     <View style={[tw`items-center justify-center`, { height }]}>

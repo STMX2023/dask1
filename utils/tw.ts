@@ -7,21 +7,30 @@ const tw = create();
 tw.memoBuster = Date.now().toString();
 
 // Create style cache for commonly used styles
-const styleCache = new Map<string, any>();
+const styleCache = new Map<string, unknown>();
 
 // Helper function for cached styles
-export const twc = (strings: TemplateStringsArray, ...values: any[]) => {
+export const twc = (strings: TemplateStringsArray, ...values: unknown[]) => {
   const key = strings.reduce((result, str, i) => {
-    return result + str + (values[i] || '');
+    const value = values[i];
+    let valueStr = '';
+    if (value !== null && value !== undefined) {
+      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+        valueStr = String(value);
+      } else {
+        valueStr = JSON.stringify(value);
+      }
+    }
+    return result + str + valueStr;
   }, '');
-  
+
   if (styleCache.has(key)) {
     return styleCache.get(key);
   }
-  
-  const style = tw(strings, ...values);
+
+  const style = tw(strings, ...(values as (string | number)[]));
   styleCache.set(key, style);
-  
+
   // Limit cache size to prevent memory issues
   if (styleCache.size > 1000) {
     const firstKey = styleCache.keys().next().value;
@@ -29,7 +38,7 @@ export const twc = (strings: TemplateStringsArray, ...values: any[]) => {
       styleCache.delete(firstKey);
     }
   }
-  
+
   return style;
 };
 
@@ -42,7 +51,7 @@ export const commonStyles = {
   itemsCenter: tw`items-center`,
   justifyCenter: tw`justify-center`,
   justifyBetween: tw`justify-between`,
-  
+
   // Spacing
   p4: tw`p-4`,
   p6: tw`p-6`,
@@ -51,7 +60,7 @@ export const commonStyles = {
   mb4: tw`mb-4`,
   mb6: tw`mb-6`,
   mb8: tw`mb-8`,
-  
+
   // Typography
   textSm: tw`text-sm`,
   textLg: tw`text-lg`,
@@ -61,7 +70,7 @@ export const commonStyles = {
   fontBold: tw`font-bold`,
   fontSemibold: tw`font-semibold`,
   fontMedium: tw`font-medium`,
-  
+
   // Colors - Light mode
   bgWhite: tw`bg-white`,
   bgGray50: tw`bg-gray-50`,
@@ -69,7 +78,7 @@ export const commonStyles = {
   textGray600: tw`text-gray-600`,
   textGray700: tw`text-gray-700`,
   textGray900: tw`text-gray-900`,
-  
+
   // Colors - Dark mode
   bgBlack: tw`bg-black`,
   bgGray900: tw`bg-gray-900`,
@@ -78,7 +87,7 @@ export const commonStyles = {
   textGray300: tw`text-gray-300`,
   textGray400: tw`text-gray-400`,
   textWhite: tw`text-white`,
-  
+
   // Common components
   roundedLg: tw`rounded-lg`,
   rounded2xl: tw`rounded-2xl`,
@@ -90,10 +99,11 @@ export const commonStyles = {
 
 // Theme-based style helpers
 export const getThemedStyles = (isDark: boolean) => {
-  if (styleCache.has(`theme-${isDark}`)) {
-    return styleCache.get(`theme-${isDark}`);
+  const themeKey = `theme-${String(isDark)}`;
+  if (styleCache.has(themeKey)) {
+    return styleCache.get(themeKey);
   }
-  
+
   const styles = {
     container: tw`flex-1 ${isDark ? 'bg-black' : 'bg-gray-50'}`,
     heading: tw`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`,
@@ -103,8 +113,8 @@ export const getThemedStyles = (isDark: boolean) => {
     card: tw`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg p-4`,
     cardBorder: tw`${isDark ? 'border-gray-700' : 'border-gray-200'} border`,
   };
-  
-  styleCache.set(`theme-${isDark}`, styles);
+
+  styleCache.set(themeKey, styles);
   return styles;
 };
 

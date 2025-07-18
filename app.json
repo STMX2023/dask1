@@ -28,15 +28,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.Dask1",
-      "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO"
-      ]
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "permissions": ["CAMERA", "RECORD_AUDIO"]
     },
     "plugins": [
       "expo-router",
@@ -45,6 +37,12 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to take photos.",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for video recording."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to access Face ID for secure key access."
         }
       ]
     ],

@@ -18,28 +18,28 @@ const styles = {
   text: tw`text-lg font-bold text-gray-900 dark:text-white`,
 };
 
-export const ComponentName = memo<ComponentNameProps>(({ 
+export const ComponentName = memo<ComponentNameProps>(({
   prop1,
-  prop2 
+  prop2
 }) => {
   // Shared values for animations
   const animValue = useSharedValue(0);
-  
+
   // Memoize calculations
   const computed = useMemo(() => {
     return heavyCalculation(prop1);
   }, [prop1]);
-  
+
   // Memoize callbacks
   const handlePress = useCallback(() => {
     animValue.value = withTiming(1);
   }, [animValue]);
-  
+
   // Animated styles
   const animStyle = useAnimatedStyle(() => ({
     opacity: animValue.value,
   }));
-  
+
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.box, animStyle]}>
@@ -49,7 +49,7 @@ export const ComponentName = memo<ComponentNameProps>(({
   );
 }, (prev, next) => {
   // Custom comparison
-  return prev.prop1 === next.prop1 && 
+  return prev.prop1 === next.prop1 &&
          prev.prop2 === next.prop2;
 });
 
@@ -59,6 +59,7 @@ ComponentName.displayName = 'ComponentName';
 ## Style Rules
 
 ### ✅ DO
+
 ```typescript
 // Module level
 const styles = {
@@ -73,6 +74,7 @@ const styles = {
 ```
 
 ### ❌ DON'T
+
 ```typescript
 // In render
 <View style={tw`flex-1 p-4 ${isDark ? 'bg-black' : 'bg-white'}`} />
@@ -82,11 +84,13 @@ const styles = {
 ## Animation Strategy
 
 ### ✅ **Moti**: For simple, declarative animations
+
 ```typescript
 <MotiView animate={{ opacity: 1 }} />
 ```
 
 ### ✅ **Reanimated**: For complex, performance-critical animations
+
 ```typescript
 // Worklets, shared values, gesture handling
 const animatedStyle = useAnimatedStyle(() => ({
@@ -97,6 +101,7 @@ const animatedStyle = useAnimatedStyle(() => ({
 ## Animation Rules
 
 ### ✅ DO
+
 ```typescript
 // Reanimated 3 worklets - accessing .value in useAnimatedStyle is safe
 const animStyle = useAnimatedStyle(() => ({
@@ -104,10 +109,10 @@ const animStyle = useAnimatedStyle(() => ({
 }));
 
 // Timing for predictable animations
-withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) })
+withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) });
 
 // Spring for interactive
-withSpring(1, { damping: 20, stiffness: 300 })
+withSpring(1, { damping: 20, stiffness: 300 });
 
 // Shared value mutations on UI thread
 const handlePress = useCallback(() => {
@@ -118,16 +123,20 @@ const handlePress = useCallback(() => {
 }, [translateX]);
 
 // Layout callbacks with runOnUI
-const handleLayout = useCallback((event) => {
-  const { width } = event.nativeEvent.layout;
-  runOnUI(() => {
-    'worklet';
-    containerWidth.value = width;
-  })();
-}, [containerWidth]);
+const handleLayout = useCallback(
+  (event) => {
+    const { width } = event.nativeEvent.layout;
+    runOnUI(() => {
+      'worklet';
+      containerWidth.value = width;
+    })();
+  },
+  [containerWidth]
+);
 ```
 
 ### ❌ DON'T
+
 ```typescript
 // React Native Animated API
 Animated.timing(animValue, { ... })
@@ -153,9 +162,11 @@ setExpanded(prev => {
 ```
 
 ### 🚨 Critical Reanimated Rule
+
 **Never access or modify shared values with `.value` during React's render phase!**
 
 Always wrap shared value mutations in `runOnUI()`:
+
 ```typescript
 // ✅ Correct
 runOnUI(() => {
@@ -170,12 +181,14 @@ sharedValue.value = newValue;
 ## Memoization Rules
 
 ### Always Memoize
+
 1. Components with props: `memo(Component)`
 2. Expensive calculations: `useMemo`
 3. Event handlers: `useCallback`
 4. Child components: Extract and memoize
 
 ### Skip Memoization
+
 1. Primitives and strings
 2. Empty dependencies
 3. Single-use calculations
@@ -183,12 +196,14 @@ sharedValue.value = newValue;
 ## Performance Patterns
 
 ### 1. Progressive Rendering
+
 ```typescript
 const showContent = useDelayedMount(100);
 return showContent ? <HeavyComponent /> : null;
 ```
 
 ### 2. List Optimization
+
 ```typescript
 <FlatList
   data={items}
@@ -205,6 +220,7 @@ return showContent ? <HeavyComponent /> : null;
 ```
 
 ### 3. Image Optimization
+
 ```typescript
 import { Image } from 'expo-image';
 
@@ -220,19 +236,22 @@ import { Image } from 'expo-image';
 ## State Management
 
 ### Component State
+
 ```typescript
 // For UI state only
 const [isOpen, setIsOpen] = useState(false);
 ```
 
 ### Global State (Zustand)
+
 ```typescript
 // For shared data
-const items = useAppStore(state => state.items);
-const updateItem = useAppStore(state => state.updateItem);
+const items = useAppStore((state) => state.items);
+const updateItem = useAppStore((state) => state.updateItem);
 ```
 
 ### Animation State
+
 ```typescript
 // For animations only
 const translateX = useSharedValue(0);
@@ -241,6 +260,7 @@ const translateX = useSharedValue(0);
 ## Common Optimizations
 
 ### 1. Static Extraction
+
 ```typescript
 // Outside component
 const CONSTANTS = { MAX_WIDTH: 300, PADDING: 16 };
@@ -248,17 +268,20 @@ const staticStyles = { wrapper: tw`flex-1` };
 ```
 
 ### 2. Early Returns
+
 ```typescript
 if (!data) return null;
 if (loading) return <LoadingFallback />;
 ```
 
 ### 3. Conditional Rendering
+
 ```typescript
 {isVisible && <ExpensiveComponent />}  // Unmounts when hidden
 ```
 
 ### 4. Lazy Loading
+
 ```typescript
 const LazyComponent = lazy(() => import('./HeavyComponent'));
 ```
@@ -266,6 +289,7 @@ const LazyComponent = lazy(() => import('./HeavyComponent'));
 ## Gesture Handling
 
 ### Touch Feedback
+
 ```typescript
 <Pressable
   onPressIn={() => haptics.selection()}
@@ -277,6 +301,7 @@ const LazyComponent = lazy(() => import('./HeavyComponent'));
 ```
 
 ### Swipe Gestures
+
 ```typescript
 // Use PanResponder for simple swipes
 // Avoid react-native-gesture-handler unless necessary

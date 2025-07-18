@@ -7,125 +7,107 @@
 🚀 Project Stack Overview:
 
 We are building a React Native mobile app using:
-	•	Expo SDK 53 (Expo-managed)
-	•	Expo Router v3 (file-based navigation)
-	•	twrnc for styling (Tailwind-style utility classes)
-	•	Moti for animations (built on Reanimated, zero config)
-	•	TypeScript only
+• Expo SDK 53 (Expo-managed)
+• Expo Router v3 (file-based navigation)
+• twrnc for styling (Tailwind-style utility classes)
+• Moti for animations (built on Reanimated, zero config)
+• TypeScript only
 
 ⸻
 
-✅ Global Development Principles:
-	1.	Prioritize build stability, fast iteration, and Expo compatibility.
-	2.	Keep styling declarative and minimal using twrnc.
-	3.	All components must be modular, typed, and Expo-safe.
-	4.	Accessibility and performance must be considered in every feature.
+✅ Global Development Principles: 1. Prioritize build stability, fast iteration, and Expo compatibility. 2. Keep styling declarative and minimal using twrnc. 3. All components must be modular, typed, and Expo-safe. 4. Accessibility and performance must be considered in every feature.
 
 ⸻
 
 🗺 Navigation Rules:
-	•	Use Expo Router v3 (file-based navigation):
+• Use Expo Router v3 (file-based navigation):
 
 app/
-├── _layout.tsx
+├── \_layout.tsx
 ├── index.tsx
 └── profile/[id].tsx
 
-
-	•	No manual navigation setup—Expo Router handles it all.
+    •	No manual navigation setup—Expo Router handles it all.
 
 ⸻
 
-🎨 Styling Rules (twrnc):
-	1.	Use twrnc for all component styling (tw).
-	2.	Avoid StyleSheet.create() unless explicitly required.
-	3.	For themes, swap classes based on useColorScheme().
+🎨 Styling Rules (twrnc): 1. Use twrnc for all component styling (tw). 2. Avoid StyleSheet.create() unless explicitly required. 3. For themes, swap classes based on useColorScheme().
 
 ⸻
 
 🧩 Component Design Rules:
-	•	Always use TypeScript with clear props types.
-	•	Support variant props and reusable styling.
-	•	Example Button:
+• Always use TypeScript with clear props types.
+• Support variant props and reusable styling.
+• Example Button:
 
 interface ButtonProps {
-  label: string;
-  onPress: () => void;
-  variant?: 'primary' | 'secondary';
+label: string;
+onPress: () => void;
+variant?: 'primary' | 'secondary';
 }
-
-
 
 ⸻
 
 🌓 Dark & Light Mode:
-	•	Use React Native’s useColorScheme().
-	•	Provide a ThemeContext if toggle control is needed.
-	•	Dark/light styles must be twrnc-compatible.
+• Use React Native’s useColorScheme().
+• Provide a ThemeContext if toggle control is needed.
+• Dark/light styles must be twrnc-compatible.
 
 ⸻
 
-📱 Responsive Layout Rules:
-	1.	Use Dimensions or useWindowDimensions for responsive decisions.
-	2.	Example:
+📱 Responsive Layout Rules: 1. Use Dimensions or useWindowDimensions for responsive decisions. 2. Example:
 
 const { width } = useWindowDimensions();
 const containerStyle = width < 400 ? tw`p-2` : tw`p-6`;
 
-
-	3.	You may build a simple useBreakpoint() hook for reusability.
+    3.	You may build a simple useBreakpoint() hook for reusability.
 
 ⸻
 
-🎞 Animation Rules (Using Moti ✅):
-	1.	Use Moti for all animations (https://moti.fyi).
-	•	Built on Reanimated 3 but zero config in Expo SDK 53.
-	•	Works seamlessly with Expo Router + twrnc.
-	2.	Example:
+🎞 Animation Rules (Using Moti ✅): 1. Use Moti for all animations (https://moti.fyi).
+• Built on Reanimated 3 but zero config in Expo SDK 53.
+• Works seamlessly with Expo Router + twrnc. 2. Example:
 
 import { MotiView } from 'moti';
 
 <MotiView
-  from={{ opacity: 0, translateY: 20 }}
-  animate={{ opacity: 1, translateY: 0 }}
-  transition={{ type: 'timing', duration: 500 }}
-  style={tw`p-4 bg-white rounded-lg`}
->
-  <Text style={tw`text-black`}>Hello Moti</Text>
-</MotiView>
+from={{ opacity: 0, translateY: 20 }}
+animate={{ opacity: 1, translateY: 0 }}
+transition={{ type: 'timing', duration: 500 }}
+style={tw`p-4 bg-white rounded-lg`}
 
+> <Text style={tw`text-black`}>Hello Moti</Text>
+> </MotiView>
 
-	3.	Do not use Animated API or imperative Reanimated calls unless explicitly requested.
-	4.	Keep all animations declarative, Expo-managed, and simple.
+    3.	Do not use Animated API or imperative Reanimated calls unless explicitly requested.
+    4.	Keep all animations declarative, Expo-managed, and simple.
 
 ⸻
 
 🌐 Web Compatibility Rules:
-	•	All navigation, layouts, and animations must work on Web without modification.
-	•	Avoid native-only modules or incompatible hooks.
+• All navigation, layouts, and animations must work on Web without modification.
+• Avoid native-only modules or incompatible hooks.
 
 ⸻
 
 🚫 Strict Don’ts:
 
-❌ Do Not Use	Why
-React Navigation manual setup	Use Expo Router only
-NativeWind, Tailwind-RN	Use twrnc only
-StyleSheet.create() (unless needed)	twrnc is the styling system
-Imperative Reanimated or Animated API	Use Moti for declarative animations
-Expo config plugins or native code	Must stay Expo-managed without ejecting
-
+❌ Do Not Use Why
+React Navigation manual setup Use Expo Router only
+NativeWind, Tailwind-RN Use twrnc only
+StyleSheet.create() (unless needed) twrnc is the styling system
+Imperative Reanimated or Animated API Use Moti for declarative animations
+Expo config plugins or native code Must stay Expo-managed without ejecting
 
 ⸻
 
 ✅ AI Output Requirements:
-	•	All code must be TypeScript and Expo SDK 53 compatible.
-	•	Components must be modular, reusable, and typed.
-	•	Animations must use Moti only.
-	•	Styling must use twrnc only.
-	•	Provide working code examples with full imports.
+• All code must be TypeScript and Expo SDK 53 compatible.
+• Components must be modular, reusable, and typed.
+• Animations must use Moti only.
+• Styling must use twrnc only.
+• Provide working code examples with full imports.
 
 ⸻
 
 ✅ The goal is to ensure maximum reliability, zero build friction, consistent styling, smooth animations, and rapid development in Expo SDK 53.
-

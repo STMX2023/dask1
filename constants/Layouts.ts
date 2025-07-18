@@ -1,7 +1,7 @@
 // Layout Grid Templates
 // Similar to color tokens, these provide consistent layout patterns across the app
 
-import { ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
 
 // Base grid containers
 export const gridContainers = {
@@ -14,7 +14,7 @@ export const gridContainers = {
     bottom: 0,
     flexDirection: 'row' as const,
   },
-  
+
   // Two-column equal flex container
   twoColumnContainer: {
     position: 'absolute' as const,
@@ -35,7 +35,7 @@ export const gridColumns = {
     flexDirection: 'column' as const,
     justifyContent: 'space-between' as const,
   },
-  
+
   // Right column aligned to end
   rightColumn: {
     flex: 1,
@@ -43,7 +43,7 @@ export const gridColumns = {
     justifyContent: 'space-between' as const,
     alignItems: 'flex-end' as const,
   },
-  
+
   // Center column
   centerColumn: {
     flex: 1,
@@ -61,7 +61,7 @@ export const gridRows = {
     alignItems: 'center' as const,
     gap: 16,
   },
-  
+
   // Top row with bottom padding
   topRow: {
     flexDirection: 'row' as const,
@@ -69,7 +69,7 @@ export const gridRows = {
     gap: 16,
     paddingBottom: 8,
   },
-  
+
   // Bottom row with top padding
   bottomRow: {
     flexDirection: 'row' as const,
@@ -77,12 +77,12 @@ export const gridRows = {
     gap: 16,
     paddingTop: 8,
   },
-  
+
   // Single item container
   singleItem: {
     paddingBottom: 8,
   },
-  
+
   // Empty spacer
   spacer: {},
 } as const;
@@ -98,7 +98,7 @@ export const spacing = {
 // Icon container templates
 export const iconContainers = {
   // Circular icon container
-  circularIcon: (size: number = 40): ViewStyle => ({
+  circularIcon: (size = 40): ViewStyle => ({
     width: size,
     height: size,
     borderRadius: size / 2,
@@ -107,9 +107,9 @@ export const iconContainers = {
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   }),
-  
+
   // Square icon container
-  squareIcon: (size: number = 48): ViewStyle => ({
+  squareIcon: (size = 48): ViewStyle => ({
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     width: size,
@@ -129,7 +129,7 @@ export const gridTemplates = {
     singleItem: gridRows.singleItem,
     spacer: gridRows.spacer,
   },
-  
+
   // Three-row compact home layout with separate bordered sections
   navigationCompactHome: {
     container: {
@@ -201,7 +201,7 @@ export const gridTemplates = {
       height: 48,
     },
   },
-  
+
   // 1x3 Standard Navigation (like settings page)
   navigationGrid1x3: {
     container: {
@@ -215,7 +215,9 @@ export const gridTemplates = {
 } as const;
 
 // Utility function to get layout styles with proper typing
-export const getLayoutStyles = <T extends keyof typeof gridTemplates>(templateName: T): typeof gridTemplates[T] => {
+export const getLayoutStyles = <T extends keyof typeof gridTemplates>(
+  templateName: T,
+): (typeof gridTemplates)[T] => {
   return gridTemplates[templateName];
 };
 

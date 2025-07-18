@@ -21,22 +21,29 @@ export const unstable_settings = {
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Ignore errors from preventing auto hide
+});
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf') as number,
     ...FontAwesome.font,
   });
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
   }, [error]);
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {
+        // Ignore errors from hiding splash screen
+      });
     }
   }, [loaded]);
 
@@ -57,14 +64,14 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen 
-            name="camera-modal" 
-            options={{ 
+          <Stack.Screen
+            name="camera-modal"
+            options={{
               presentation: 'fullScreenModal',
               headerShown: false,
               animation: 'none', // Remove animation for instant appearance
               animationDuration: 0,
-            }} 
+            }}
           />
         </Stack>
       </ThemeProvider>

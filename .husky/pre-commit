@@ -1,1 +1,8 @@
-npm test
+yarn test
+
+# Prevent committing package-lock.json
+if [ -f package-lock.json ]; then
+  echo "Error: package-lock.json found. Please use yarn instead of npm."
+  exit 1
+fi
+

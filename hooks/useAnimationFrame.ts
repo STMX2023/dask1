@@ -12,7 +12,7 @@ export const useAnimationFrame = (callback: (deltaTime: number) => void, enabled
   }, [callback]);
 
   const animate = useCallback((time: number) => {
-    if (previousTimeRef.current !== undefined) {
+    if (previousTimeRef.current !== 0) {
       const deltaTime = time - previousTimeRef.current;
       callbackRef.current(deltaTime);
     }
@@ -30,6 +30,8 @@ export const useAnimationFrame = (callback: (deltaTime: number) => void, enabled
       };
     }
     // Return empty cleanup function when disabled
-    return () => {};
+    return () => {
+      // No cleanup needed when disabled
+    };
   }, [animate, enabled]);
 };

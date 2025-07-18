@@ -15,22 +15,22 @@ export const Clock = memo(({ isDark }: ClockProps) => {
       setCurrentTime(new Date());
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => { clearInterval(timer); };
   }, []);
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: false 
+      hour12: false,
     });
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -44,7 +44,7 @@ export const Clock = memo(({ isDark }: ClockProps) => {
       >
         {formatTime(currentTime)}
       </MotiText>
-      
+
       <MotiText
         from={{ opacity: 0, translateX: -50 }}
         animate={{ opacity: 1, translateX: 0 }}

@@ -20,13 +20,13 @@ export const useStoreIntegration = () => {
     } catch (error) {
       console.warn('Error syncing dark mode:', error);
     }
-  }, []); // Empty dependency array - only run once on mount
+  }, [colorScheme]); // Include colorScheme in dependencies
 
   // Initialize default data
   useEffect(() => {
     try {
       const state = useAppStore.getState();
-      
+
       // Set current user if not set
       if (!state.currentUser) {
         setCurrentUser({
